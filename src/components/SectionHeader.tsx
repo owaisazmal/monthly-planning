@@ -1,27 +1,45 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Text, StyleSheet, View } from 'react-native';
-import { colors } from '../theme';
+import { useTheme } from '../theme';
 
-export default function SectionHeader({ title }: { title: string }) {
+interface Props {
+  title: string;
+  /** optional element pinned to the right edge (badge, nav, control) */
+  right?: React.ReactNode;
+}
+
+export default function SectionHeader({ title, right }: Props) {
+  const { palette } = useTheme();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        row: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginBottom: 12,
+        },
+        accent: {
+          width: 4,
+          height: 15,
+          borderRadius: 2,
+          backgroundColor: palette.green,
+          marginRight: 8,
+        },
+        text: {
+          color: palette.ink,
+          fontWeight: '900',
+          fontSize: 13,
+          letterSpacing: 2,
+          flex: 1,
+        },
+      }),
+    [palette]
+  );
   return (
-    <View style={styles.bar}>
+    <View style={styles.row}>
+      <View style={styles.accent} />
       <Text style={styles.text}>{title}</Text>
+      {right}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  bar: {
-    backgroundColor: colors.headerBg,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    alignSelf: 'stretch',
-  },
-  text: {
-    color: colors.headerText,
-    fontWeight: '900',
-    fontSize: 15,
-    letterSpacing: 2,
-    textAlign: 'center',
-  },
-});
