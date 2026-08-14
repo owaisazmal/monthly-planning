@@ -20,6 +20,7 @@ import DailyCheck from './src/components/DailyCheck';
 import HabitsList from './src/components/HabitsList';
 import Observations from './src/components/Observations';
 import KeyGoals from './src/components/KeyGoals';
+import AuroraBackground from './src/components/AuroraBackground';
 import {
   MonthData,
   emptyMonthData,
@@ -46,6 +47,8 @@ import {
   darkPalette,
   lightPalette,
   Palette,
+  cardSurface,
+  RADIUS,
 } from './src/theme';
 
 const MONTH_NAMES = [
@@ -549,10 +552,14 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeContext.Provider value={theme}>
-        <PlannerScreen
-          chart={settings.chart}
-          onSetChart={(chart) => setSettings((prev) => ({ ...(prev as Settings), chart }))}
-        />
+        {/* The drifting background sits behind every screen; cards are translucent so it reads through */}
+        <View style={{ flex: 1, backgroundColor: theme.palette.bg }}>
+          <AuroraBackground />
+          <PlannerScreen
+            chart={settings.chart}
+            onSetChart={(chart) => setSettings((prev) => ({ ...(prev as Settings), chart }))}
+          />
+        </View>
       </ThemeContext.Provider>
     </SafeAreaProvider>
   );
@@ -562,7 +569,7 @@ const makeStyles = (p: Palette) =>
   StyleSheet.create({
     safe: {
       flex: 1,
-      backgroundColor: p.bg,
+      backgroundColor: 'transparent',
     },
     flex: {
       flex: 1,
@@ -576,24 +583,26 @@ const makeStyles = (p: Palette) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 14,
+      marginBottom: 18,
+      paddingHorizontal: 4,
     },
     headerSub: {
       fontSize: 11,
       fontWeight: '800',
       letterSpacing: 4,
-      color: p.green,
+      color: p.accent,
+      marginBottom: 2,
     },
     headerTitle: {
-      fontSize: 26,
+      fontSize: 30,
       fontWeight: '900',
-      letterSpacing: 2,
+      letterSpacing: 1,
       color: p.ink,
     },
     themeBtn: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 44,
+      height: 44,
+      borderRadius: RADIUS.pill,
       borderWidth: 1,
       borderColor: p.lineFaint,
       alignItems: 'center',
@@ -605,13 +614,11 @@ const makeStyles = (p: Palette) =>
       color: p.ink,
     },
     monthNav: {
+      ...cardSurface(p),
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: p.card,
-      borderWidth: 1,
-      borderColor: p.lineFaint,
-      borderRadius: 16,
+      borderRadius: RADIUS.pill,
       paddingVertical: 8,
       paddingHorizontal: 10,
       marginBottom: 14,
@@ -619,7 +626,7 @@ const makeStyles = (p: Palette) =>
     navBtn: {
       width: 34,
       height: 34,
-      borderRadius: 17,
+      borderRadius: RADIUS.pill,
       backgroundColor: p.chip,
       alignItems: 'center',
       justifyContent: 'center',
@@ -646,12 +653,9 @@ const makeStyles = (p: Palette) =>
       color: p.inkSoft,
     },
     chartCard: {
+      ...cardSurface(p),
       alignItems: 'center',
-      backgroundColor: p.card,
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: p.lineFaint,
-      paddingVertical: 16,
+      paddingVertical: 18,
       paddingHorizontal: 16,
       marginBottom: 14,
     },
@@ -665,7 +669,7 @@ const makeStyles = (p: Palette) =>
       width: 4,
       height: 15,
       borderRadius: 2,
-      backgroundColor: p.green,
+      backgroundColor: p.accent,
       marginRight: 8,
     },
     chartTitle: {
@@ -677,17 +681,17 @@ const makeStyles = (p: Palette) =>
     },
     segment: {
       flexDirection: 'row',
-      borderRadius: 10,
+      borderRadius: RADIUS.pill,
       backgroundColor: p.chip,
       padding: 3,
     },
     segmentBtn: {
       paddingVertical: 5,
       paddingHorizontal: 12,
-      borderRadius: 8,
+      borderRadius: RADIUS.pill,
     },
     segmentBtnActive: {
-      backgroundColor: p.headerBg,
+      backgroundColor: p.accent,
     },
     segmentText: {
       fontSize: 10,
@@ -696,7 +700,7 @@ const makeStyles = (p: Palette) =>
       color: p.inkSoft,
     },
     segmentTextActive: {
-      color: p.headerText,
+      color: p.onAccent,
     },
     chartLoading: {
       height: 140,
