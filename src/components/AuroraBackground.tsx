@@ -38,12 +38,15 @@ const MAX_LEG_MS = 19000;
 function DriftBlob({
   spec,
   color,
+  strength,
   unit,
   width,
   height,
 }: {
   spec: BlobSpec;
   color: string;
+  /** scales the blob back so a full-strength brand colour still reads as a wash */
+  strength: number;
   unit: number;
   width: number;
   height: number;
@@ -99,7 +102,7 @@ function DriftBlob({
         top: spec.y * height,
         width: diameter,
         height: diameter,
-        opacity: spec.opacity,
+        opacity: spec.opacity * strength,
         transform: [{ translateX: tx }, { translateY: ty }, { scale }],
       }}
     >
@@ -139,6 +142,7 @@ export default function AuroraBackground() {
           key={`${mode}-${spec.key}`}
           spec={spec}
           color={palette.blobs[i]}
+          strength={palette.blobStrength}
           unit={unit}
           width={width}
           height={height}

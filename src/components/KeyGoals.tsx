@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
 import SectionHeader from './SectionHeader';
 import { KeyGoal } from '../types';
-import { useTheme } from '../theme';
+import { useTheme, cardSurface, RADIUS } from '../theme';
 
 interface Props {
   goals: KeyGoal[];
@@ -19,16 +19,13 @@ export default function KeyGoals({ goals, onChangeText, onToggleDone }: Props) {
     () =>
       StyleSheet.create({
         card: {
-          backgroundColor: palette.card,
-          borderRadius: 16,
-          borderWidth: 1,
-          borderColor: palette.lineFaint,
-          padding: 16,
+          ...cardSurface(palette),
+          padding: 18,
         },
         countBadge: {
           backgroundColor: palette.chip,
-          borderRadius: 10,
-          paddingHorizontal: 8,
+          borderRadius: RADIUS.chip,
+          paddingHorizontal: 10,
           paddingVertical: 3,
         },
         countText: {
@@ -43,16 +40,16 @@ export default function KeyGoals({ goals, onChangeText, onToggleDone }: Props) {
         goalBox: {
           flex: 1,
           backgroundColor: palette.chip,
-          borderRadius: 12,
+          borderRadius: RADIUS.chip,
           borderWidth: 1,
           borderColor: palette.lineFaint,
-          paddingVertical: 10,
+          paddingVertical: 12,
           paddingHorizontal: 8,
           alignItems: 'center',
         },
         goalBoxDone: {
-          backgroundColor: palette.greenSoft,
-          borderColor: palette.green,
+          backgroundColor: palette.doneSoft,
+          borderColor: palette.done,
         },
         input: {
           minHeight: 48,
@@ -63,7 +60,7 @@ export default function KeyGoals({ goals, onChangeText, onToggleDone }: Props) {
           alignSelf: 'stretch',
         },
         inputDone: {
-          color: palette.green,
+          color: palette.done,
         },
         check: {
           marginTop: 6,
@@ -73,15 +70,15 @@ export default function KeyGoals({ goals, onChangeText, onToggleDone }: Props) {
           color: palette.inkSoft,
           borderWidth: 1,
           borderColor: palette.line,
-          borderRadius: 8,
-          paddingVertical: 3,
-          paddingHorizontal: 8,
+          borderRadius: RADIUS.chip,
+          paddingVertical: 4,
+          paddingHorizontal: 10,
           overflow: 'hidden',
         },
         checkDone: {
-          color: '#ffffff',
-          backgroundColor: palette.green,
-          borderColor: palette.green,
+          color: palette.onFill,
+          backgroundColor: palette.done,
+          borderColor: palette.done,
         },
       }),
     [palette]

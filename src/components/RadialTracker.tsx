@@ -68,8 +68,8 @@ export default function RadialTracker({
 
   const cellFill: Record<CellState, string> = {
     0: palette.cellEmpty,
-    1: palette.green,
-    2: palette.red,
+    1: palette.done,
+    2: palette.missed,
   };
 
   const cells = useMemo(() => {
@@ -131,7 +131,7 @@ export default function RadialTracker({
               y={p.y + 3.5}
               fontSize={isToday || isSelected ? 12 : 10}
               fontWeight={isToday || isSelected ? '800' : '600'}
-              fill={isToday ? palette.green : isSelected ? palette.ink : palette.inkSoft}
+              fill={isToday ? palette.accent : isSelected ? palette.ink : palette.inkSoft}
               textAnchor="middle"
               onPress={() => onSelectDay(day)}
             >

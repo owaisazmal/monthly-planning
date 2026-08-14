@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import SectionHeader from './SectionHeader';
+import MarkButton from './MarkButton';
 import { CellState, Habit, cellKey } from '../types';
-import { useTheme, Palette } from '../theme';
+import { useTheme, cardSurface, RADIUS } from '../theme';
 
 interface Props {
   day: number;
@@ -13,66 +14,6 @@ interface Props {
   grid: Record<string, CellState>;
   onSet: (day: number, habitId: string, state: CellState) => void;
   onShiftDay: (delta: number) => void;
-}
-
-function MarkButton({
-  active,
-  color,
-  symbol,
-  palette,
-  onPress,
-}: {
-  active: boolean;
-  color: string;
-  symbol: string;
-  palette: Palette;
-  onPress: () => void;
-}) {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    if (active) {
-      scale.setValue(0.5);
-      Animated.spring(scale, {
-        toValue: 1,
-        friction: 4,
-        tension: 120,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [active, scale]);
-
-  return (
-    <Pressable hitSlop={6} onPress={onPress}>
-      {({ pressed }) => (
-        <Animated.View
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            borderWidth: 1.5,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginLeft: 8,
-            borderColor: active ? color : palette.line,
-            backgroundColor: active ? color : 'transparent',
-            opacity: pressed ? 0.6 : 1,
-            transform: [{ scale }],
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 15,
-              fontWeight: '900',
-              color: active ? '#ffffff' : palette.inkSoft,
-            }}
-          >
-            {symbol}
-          </Text>
-        </Animated.View>
-      )}
-    </Pressable>
-  );
 }
 
 export default function DailyCheck({
@@ -91,11 +32,8 @@ export default function DailyCheck({
     () =>
       StyleSheet.create({
         card: {
-          backgroundColor: palette.card,
-          borderRadius: 16,
-          borderWidth: 1,
-          borderColor: palette.lineFaint,
-          padding: 16,
+          ...cardSurface(palette),
+          padding: 18,
         },
         dayNav: {
           flexDirection: 'row',
@@ -104,7 +42,7 @@ export default function DailyCheck({
         navBtn: {
           width: 28,
           height: 28,
-          borderRadius: 14,
+          borderRadius: RADIUS.pill,
           backgroundColor: palette.chip,
           alignItems: 'center',
           justifyContent: 'center',
@@ -125,7 +63,7 @@ export default function DailyCheck({
         todayBadge: {
           fontSize: 9,
           fontWeight: '900',
-          color: palette.green,
+          color: palette.accent,
           letterSpacing: 1,
           textAlign: 'center',
         },
@@ -202,16 +140,14 @@ export default function DailyCheck({
                 {h.name || 'Unnamed habit'}
               </Text>
               <MarkButton
+                kind="done"
                 active={state === 1}
-                color={palette.green}
-                symbol="✓"
                 palette={palette}
                 onPress={() => onSet(day, h.id, state === 1 ? 0 : 1)}
               />
               <MarkButton
+                kind="missed"
                 active={state === 2}
-                color={palette.red}
-                symbol="✗"
                 palette={palette}
                 onPress={() => onSet(day, h.id, state === 2 ? 0 : 2)}
               />

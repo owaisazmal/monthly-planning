@@ -85,7 +85,7 @@ export default function YearChart({
           fontWeight: '800',
           color: palette.inkSoft,
         },
-        monthLabelFocus: { color: palette.green },
+        monthLabelFocus: { color: palette.accent },
         week: { width: STEP },
         cell: {
           width: CELL,
@@ -100,7 +100,7 @@ export default function YearChart({
           marginTop: 8,
         },
         totalText: { fontSize: 11, color: palette.inkSoft },
-        totalNum: { color: palette.green, fontWeight: '900' },
+        totalNum: { color: palette.accent, fontWeight: '900' },
         legendRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
         legendText: { fontSize: 10, color: palette.inkSoft, marginHorizontal: 3 },
         legendCell: { width: 10, height: 10, borderRadius: 2 },
@@ -171,7 +171,7 @@ export default function YearChart({
                         style={[
                           styles.cell,
                           { backgroundColor: colorFor(date.m, date.d) },
-                          isToday && { borderWidth: 1.5, borderColor: palette.green },
+                          isToday && { borderWidth: 1.5, borderColor: palette.accent },
                           isSelected && { borderWidth: 1.5, borderColor: palette.ink },
                         ]}
                       />

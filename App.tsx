@@ -21,6 +21,7 @@ import HabitsList from './src/components/HabitsList';
 import Observations from './src/components/Observations';
 import KeyGoals from './src/components/KeyGoals';
 import AuroraBackground from './src/components/AuroraBackground';
+import ThemeIcon from './src/components/ThemeIcon';
 import {
   MonthData,
   emptyMonthData,
@@ -49,7 +50,16 @@ import {
   Palette,
   cardSurface,
   RADIUS,
+  FONT,
 } from './src/theme';
+import {
+  useFonts,
+  JosefinSans_400Regular,
+  JosefinSans_400Regular_Italic,
+  JosefinSans_500Medium,
+  JosefinSans_600SemiBold,
+  JosefinSans_700Bold,
+} from '@expo-google-fonts/josefin-sans';
 
 const MONTH_NAMES = [
   'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
@@ -301,7 +311,7 @@ function PlannerScreen({
               onPress={toggle}
               style={({ pressed }) => [styles.themeBtn, pressed && { opacity: 0.6 }]}
             >
-              <Text style={styles.themeBtnText}>{mode === 'dark' ? '☀' : '☾'}</Text>
+              <ThemeIcon mode={mode} color={palette.ink} />
             </Pressable>
           </View>
 
@@ -427,9 +437,9 @@ function PlannerScreen({
             )}
             {chart === 'radial' && data.habits.length > 0 && (
               <View style={styles.legend}>
-                <View style={[styles.legendSwatch, { backgroundColor: palette.green }]} />
+                <View style={[styles.legendSwatch, { backgroundColor: palette.done }]} />
                 <Text style={styles.legendText}>done</Text>
-                <View style={[styles.legendSwatch, { backgroundColor: palette.red }]} />
+                <View style={[styles.legendSwatch, { backgroundColor: palette.missed }]} />
                 <Text style={styles.legendText}>missed</Text>
                 <View style={[styles.legendSwatch, styles.legendEmpty]} />
                 <Text style={styles.legendText}>pending</Text>
@@ -513,7 +523,10 @@ function PlannerScreen({
 
           {/* Discipline quote */}
           <View style={styles.quoteCard}>
-            <Text style={styles.quoteLabel}>DISCIPLINE.</Text>
+            <View style={styles.quoteHead}>
+              <View style={styles.accent} />
+              <Text style={styles.quoteLabel}>DISCIPLINE.</Text>
+            </View>
             <Text style={styles.quote}>“{quoteForDate(now)}”</Text>
           </View>
         </ScrollView>
@@ -524,6 +537,13 @@ function PlannerScreen({
 
 export default function App() {
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [fontsLoaded] = useFonts({
+    JosefinSans_400Regular,
+    JosefinSans_400Regular_Italic,
+    JosefinSans_500Medium,
+    JosefinSans_600SemiBold,
+    JosefinSans_700Bold,
+  });
 
   useEffect(() => {
     loadSettings().then(setSettings);
@@ -547,7 +567,9 @@ export default function App() {
     [mode]
   );
 
-  if (!settings) return null; // brief flash-free load of persisted theme
+  // hold the first paint until both the persisted theme and the font are ready,
+  // so nothing flashes in the system font or the wrong palette
+  if (!settings || !fontsLoaded) return null;
 
   return (
     <SafeAreaProvider>
@@ -609,16 +631,12 @@ const makeStyles = (p: Palette) =>
       justifyContent: 'center',
       backgroundColor: p.card,
     },
-    themeBtnText: {
-      fontSize: 18,
-      color: p.ink,
-    },
     monthNav: {
       ...cardSurface(p),
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      borderRadius: RADIUS.pill,
+      borderRadius: RADIUS.card,
       paddingVertical: 8,
       paddingHorizontal: 10,
       marginBottom: 14,
@@ -681,14 +699,14 @@ const makeStyles = (p: Palette) =>
     },
     segment: {
       flexDirection: 'row',
-      borderRadius: RADIUS.pill,
+      borderRadius: RADIUS.control,
       backgroundColor: p.chip,
       padding: 3,
     },
     segmentBtn: {
-      paddingVertical: 5,
-      paddingHorizontal: 12,
-      borderRadius: RADIUS.pill,
+      paddingVertical: 6,
+      paddingHorizontal: 13,
+      borderRadius: RADIUS.chip,
     },
     segmentBtnActive: {
       backgroundColor: p.accent,
@@ -700,7 +718,7 @@ const makeStyles = (p: Palette) =>
       color: p.inkSoft,
     },
     segmentTextActive: {
-      color: p.onAccent,
+      color: p.onFill,
     },
     chartLoading: {
       height: 140,
@@ -728,14 +746,14 @@ const makeStyles = (p: Palette) =>
     progressFill: {
       height: 6,
       borderRadius: 3,
-      backgroundColor: p.green,
+      backgroundColor: p.done,
     },
     statsLine: {
       fontSize: 12,
       color: p.inkSoft,
     },
     statsDone: {
-      color: p.green,
+      color: p.done,
       fontWeight: '900',
     },
     legend: {
@@ -763,22 +781,23 @@ const makeStyles = (p: Palette) =>
       marginBottom: 14,
     },
     quoteCard: {
+      ...cardSurface(p),
       marginTop: 2,
-      backgroundColor: p.card,
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: p.lineFaint,
-      borderLeftWidth: 3,
-      borderLeftColor: p.green,
-      paddingVertical: 14,
-      paddingHorizontal: 16,
+      paddingVertical: 16,
+      paddingHorizontal: 18,
+    },
+    // an inline accent bar, matching every other section — a borderLeft would
+    // detach into a floating arc against the card's large corner radius
+    quoteHead: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 6,
     },
     quoteLabel: {
       fontSize: 12,
       fontWeight: '900',
       letterSpacing: 2,
-      color: p.green,
-      marginBottom: 6,
+      color: p.accent,
     },
     quote: {
       fontSize: 13,

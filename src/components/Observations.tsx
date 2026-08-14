@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
 import SectionHeader from './SectionHeader';
-import { useTheme } from '../theme';
+import { useTheme, cardSurface, RADIUS } from '../theme';
 
 interface Props {
   observations: string[];
@@ -17,11 +17,8 @@ export default function Observations({ observations, onChange, onAdd, onRemove }
     () =>
       StyleSheet.create({
         card: {
-          backgroundColor: palette.card,
-          borderRadius: 16,
-          borderWidth: 1,
-          borderColor: palette.lineFaint,
-          padding: 16,
+          ...cardSurface(palette),
+          padding: 18,
         },
         row: {
           flexDirection: 'row',
@@ -33,7 +30,7 @@ export default function Observations({ observations, onChange, onAdd, onRemove }
           width: 5,
           height: 5,
           borderRadius: 2.5,
-          backgroundColor: palette.inkSoft,
+          backgroundColor: palette.accent,
           marginRight: 10,
         },
         input: {
@@ -50,15 +47,15 @@ export default function Observations({ observations, onChange, onAdd, onRemove }
         addBtn: {
           marginTop: 12,
           alignSelf: 'flex-start',
-          backgroundColor: palette.chip,
-          borderRadius: 10,
-          paddingVertical: 8,
-          paddingHorizontal: 14,
+          backgroundColor: palette.accentSoft,
+          borderRadius: RADIUS.control,
+          paddingVertical: 9,
+          paddingHorizontal: 16,
         },
         addText: {
           fontSize: 13,
           fontWeight: '800',
-          color: palette.ink,
+          color: palette.accent,
         },
       }),
     [palette]

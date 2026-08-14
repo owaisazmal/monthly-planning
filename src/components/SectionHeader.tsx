@@ -22,7 +22,7 @@ export default function SectionHeader({ title, right }: Props) {
           width: 4,
           height: 15,
           borderRadius: 2,
-          backgroundColor: palette.green,
+          backgroundColor: palette.accent,
           marginRight: 8,
         },
         text: {

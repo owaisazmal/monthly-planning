@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
 import SectionHeader from './SectionHeader';
 import { Habit, MAX_HABITS } from '../types';
-import { useTheme } from '../theme';
+import { useTheme, cardSurface, RADIUS } from '../theme';
 
 interface Props {
   habits: Habit[];
@@ -18,16 +18,13 @@ export default function HabitsList({ habits, onRename, onAdd, onRemove }: Props)
     () =>
       StyleSheet.create({
         card: {
-          backgroundColor: palette.card,
-          borderRadius: 16,
-          borderWidth: 1,
-          borderColor: palette.lineFaint,
-          padding: 16,
+          ...cardSurface(palette),
+          padding: 18,
         },
         countBadge: {
           backgroundColor: palette.chip,
-          borderRadius: 10,
-          paddingHorizontal: 8,
+          borderRadius: RADIUS.chip,
+          paddingHorizontal: 10,
           paddingVertical: 3,
         },
         countText: {
@@ -45,7 +42,7 @@ export default function HabitsList({ habits, onRename, onAdd, onRemove }: Props)
         num: {
           width: 24,
           height: 24,
-          borderRadius: 12,
+          borderRadius: RADIUS.pill,
           backgroundColor: palette.chip,
           alignItems: 'center',
           justifyContent: 'center',
@@ -73,15 +70,15 @@ export default function HabitsList({ habits, onRename, onAdd, onRemove }: Props)
           alignSelf: 'flex-start',
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor: palette.greenSoft,
-          borderRadius: 10,
-          paddingVertical: 8,
-          paddingHorizontal: 14,
+          backgroundColor: palette.accentSoft,
+          borderRadius: RADIUS.control,
+          paddingVertical: 9,
+          paddingHorizontal: 16,
         },
         addText: {
           fontSize: 13,
           fontWeight: '800',
-          color: palette.green,
+          color: palette.accent,
         },
         limit: {
           marginTop: 12,
