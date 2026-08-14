@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
 import SectionHeader from './SectionHeader';
 import { KeyGoal } from '../types';
-import { useTheme, cardSurface, RADIUS } from '../theme';
+import { useTheme, cardSurface, RADIUS, FONT } from '../theme';
 
 interface Props {
   goals: KeyGoal[];
@@ -30,7 +30,7 @@ export default function KeyGoals({ goals, onChangeText, onToggleDone }: Props) {
         },
         countText: {
           fontSize: 11,
-          fontWeight: '800',
+          fontFamily: FONT.bold,
           color: palette.inkSoft,
         },
         row: {
@@ -54,7 +54,7 @@ export default function KeyGoals({ goals, onChangeText, onToggleDone }: Props) {
         input: {
           minHeight: 48,
           fontSize: 14,
-          fontWeight: '800',
+          fontFamily: FONT.bold,
           color: palette.ink,
           textAlignVertical: 'center',
           alignSelf: 'stretch',
@@ -65,7 +65,7 @@ export default function KeyGoals({ goals, onChangeText, onToggleDone }: Props) {
         check: {
           marginTop: 6,
           fontSize: 10,
-          fontWeight: '800',
+          fontFamily: FONT.bold,
           letterSpacing: 0.5,
           color: palette.inkSoft,
           borderWidth: 1,

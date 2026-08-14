@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import Svg, { G, Path, Text as SvgText } from 'react-native-svg';
 import { CellState, Habit, cellKey } from '../types';
-import { useTheme } from '../theme';
+import { useTheme, FONT } from '../theme';
 
 /** Faint placeholder rings keep the dense whiteboard-grid look when few habits exist */
 const MIN_RINGS = 6;
@@ -130,7 +130,7 @@ export default function RadialTracker({
               x={p.x}
               y={p.y + 3.5}
               fontSize={isToday || isSelected ? 12 : 10}
-              fontWeight={isToday || isSelected ? '800' : '600'}
+              fontFamily={isToday || isSelected ? FONT.bold : FONT.medium}
               fill={isToday ? palette.accent : isSelected ? palette.ink : palette.inkSoft}
               textAnchor="middle"
               onPress={() => onSelectDay(day)}

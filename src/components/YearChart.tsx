@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { YearMonthSummary } from '../storage';
-import { useTheme } from '../theme';
+import { useTheme, FONT } from '../theme';
 
 interface Props {
   year: number;
@@ -73,7 +73,7 @@ export default function YearChart({
         weekdayLabel: {
           height: STEP,
           fontSize: 9,
-          fontWeight: '700',
+          fontFamily: FONT.semibold,
           color: palette.inkSoft,
           textAlignVertical: 'center',
         },
@@ -82,7 +82,7 @@ export default function YearChart({
           position: 'absolute',
           top: 0,
           fontSize: 10,
-          fontWeight: '800',
+          fontFamily: FONT.bold,
           color: palette.inkSoft,
         },
         monthLabelFocus: { color: palette.accent },
@@ -99,10 +99,15 @@ export default function YearChart({
           justifyContent: 'space-between',
           marginTop: 8,
         },
-        totalText: { fontSize: 11, color: palette.inkSoft },
-        totalNum: { color: palette.accent, fontWeight: '900' },
+        totalText: { fontSize: 11, fontFamily: FONT.regular, color: palette.inkSoft },
+        totalNum: { color: palette.done, fontFamily: FONT.bold },
         legendRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-        legendText: { fontSize: 10, color: palette.inkSoft, marginHorizontal: 3 },
+        legendText: {
+          fontSize: 10,
+          fontFamily: FONT.regular,
+          color: palette.inkSoft,
+          marginHorizontal: 3,
+        },
         legendCell: { width: 10, height: 10, borderRadius: 2 },
       }),
     [palette]

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
 import SectionHeader from './SectionHeader';
-import { useTheme, cardSurface, RADIUS } from '../theme';
+import { useTheme, cardSurface, RADIUS, FONT } from '../theme';
 
 interface Props {
   observations: string[];
@@ -37,10 +37,12 @@ export default function Observations({ observations, onChange, onAdd, onRemove }
           flex: 1,
           paddingVertical: 10,
           fontSize: 14,
+          fontFamily: FONT.regular,
           color: palette.ink,
         },
         remove: {
           fontSize: 18,
+          fontFamily: FONT.regular,
           color: palette.inkSoft,
           paddingHorizontal: 6,
         },
@@ -54,7 +56,7 @@ export default function Observations({ observations, onChange, onAdd, onRemove }
         },
         addText: {
           fontSize: 13,
-          fontWeight: '800',
+          fontFamily: FONT.bold,
           color: palette.accent,
         },
       }),

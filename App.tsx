@@ -610,14 +610,14 @@ const makeStyles = (p: Palette) =>
     },
     headerSub: {
       fontSize: 11,
-      fontWeight: '800',
+      fontFamily: FONT.bold,
       letterSpacing: 4,
       color: p.accent,
       marginBottom: 2,
     },
     headerTitle: {
       fontSize: 30,
-      fontWeight: '900',
+      fontFamily: FONT.bold,
       letterSpacing: 1,
       color: p.ink,
     },
@@ -651,7 +651,7 @@ const makeStyles = (p: Palette) =>
     },
     navArrow: {
       fontSize: 20,
-      fontWeight: '800',
+      fontFamily: FONT.bold,
       color: p.ink,
       lineHeight: 24,
     },
@@ -660,13 +660,13 @@ const makeStyles = (p: Palette) =>
     },
     monthLabel: {
       fontSize: 16,
-      fontWeight: '900',
+      fontFamily: FONT.bold,
       letterSpacing: 2,
       color: p.ink,
     },
     yearLabel: {
       fontSize: 11,
-      fontWeight: '700',
+      fontFamily: FONT.semibold,
       letterSpacing: 1,
       color: p.inkSoft,
     },
@@ -693,7 +693,7 @@ const makeStyles = (p: Palette) =>
     chartTitle: {
       flex: 1,
       fontSize: 13,
-      fontWeight: '900',
+      fontFamily: FONT.bold,
       letterSpacing: 2,
       color: p.ink,
     },
@@ -713,7 +713,7 @@ const makeStyles = (p: Palette) =>
     },
     segmentText: {
       fontSize: 10,
-      fontWeight: '800',
+      fontFamily: FONT.bold,
       letterSpacing: 1,
       color: p.inkSoft,
     },
@@ -726,6 +726,7 @@ const makeStyles = (p: Palette) =>
     chartHint: {
       marginTop: 10,
       fontSize: 13,
+      fontFamily: FONT.regular,
       color: p.inkSoft,
       textAlign: 'center',
       paddingHorizontal: 24,
@@ -754,7 +755,7 @@ const makeStyles = (p: Palette) =>
     },
     statsDone: {
       color: p.done,
-      fontWeight: '900',
+      fontFamily: FONT.bold,
     },
     legend: {
       flexDirection: 'row',
@@ -774,6 +775,7 @@ const makeStyles = (p: Palette) =>
     },
     legendText: {
       fontSize: 12,
+      fontFamily: FONT.regular,
       color: p.inkSoft,
       marginRight: 8,
     },
@@ -795,13 +797,14 @@ const makeStyles = (p: Palette) =>
     },
     quoteLabel: {
       fontSize: 12,
-      fontWeight: '900',
+      fontFamily: FONT.bold,
       letterSpacing: 2,
       color: p.accent,
     },
     quote: {
       fontSize: 13,
-      fontStyle: 'italic',
+      // the italic family carries the slant; fontStyle would be ignored here
+      fontFamily: FONT.italic,
       lineHeight: 19,
       color: p.inkSoft,
     },

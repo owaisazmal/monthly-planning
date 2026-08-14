@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
 import SectionHeader from './SectionHeader';
 import { Habit, MAX_HABITS } from '../types';
-import { useTheme, cardSurface, RADIUS } from '../theme';
+import { useTheme, cardSurface, RADIUS, FONT } from '../theme';
 
 interface Props {
   habits: Habit[];
@@ -29,7 +29,7 @@ export default function HabitsList({ habits, onRename, onAdd, onRemove }: Props)
         },
         countText: {
           fontSize: 11,
-          fontWeight: '800',
+          fontFamily: FONT.bold,
           color: palette.inkSoft,
         },
         row: {
@@ -49,7 +49,7 @@ export default function HabitsList({ habits, onRename, onAdd, onRemove }: Props)
           marginRight: 10,
         },
         numText: {
-          fontWeight: '800',
+          fontFamily: FONT.bold,
           fontSize: 11,
           color: palette.inkSoft,
         },
@@ -57,11 +57,12 @@ export default function HabitsList({ habits, onRename, onAdd, onRemove }: Props)
           flex: 1,
           paddingVertical: 10,
           fontSize: 14,
-          fontWeight: '600',
+          fontFamily: FONT.medium,
           color: palette.ink,
         },
         remove: {
           fontSize: 20,
+          fontFamily: FONT.regular,
           color: palette.inkSoft,
           paddingHorizontal: 8,
         },
@@ -77,16 +78,18 @@ export default function HabitsList({ habits, onRename, onAdd, onRemove }: Props)
         },
         addText: {
           fontSize: 13,
-          fontWeight: '800',
+          fontFamily: FONT.bold,
           color: palette.accent,
         },
         limit: {
           marginTop: 12,
           fontSize: 12,
+          fontFamily: FONT.regular,
           color: palette.inkSoft,
         },
         empty: {
           fontSize: 13,
+          fontFamily: FONT.regular,
           color: palette.inkSoft,
           paddingVertical: 4,
         },

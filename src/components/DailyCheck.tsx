@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import SectionHeader from './SectionHeader';
 import MarkButton from './MarkButton';
 import { CellState, Habit, cellKey } from '../types';
-import { useTheme, cardSurface, RADIUS } from '../theme';
+import { useTheme, cardSurface, RADIUS, FONT } from '../theme';
 
 interface Props {
   day: number;
@@ -49,26 +49,27 @@ export default function DailyCheck({
         },
         navArrow: {
           fontSize: 16,
-          fontWeight: '800',
+          fontFamily: FONT.bold,
           color: palette.ink,
           lineHeight: 19,
         },
         dayLabel: {
           fontSize: 13,
-          fontWeight: '800',
+          fontFamily: FONT.bold,
           color: palette.ink,
           minWidth: 58,
           textAlign: 'center',
         },
         todayBadge: {
           fontSize: 9,
-          fontWeight: '900',
+          fontFamily: FONT.bold,
           color: palette.accent,
           letterSpacing: 1,
           textAlign: 'center',
         },
         empty: {
           fontSize: 13,
+          fontFamily: FONT.regular,
           color: palette.inkSoft,
           paddingVertical: 8,
           textAlign: 'center',
@@ -83,7 +84,7 @@ export default function DailyCheck({
         habitName: {
           flex: 1,
           fontSize: 14,
-          fontWeight: '600',
+          fontFamily: FONT.medium,
           color: palette.ink,
         },
       }),
