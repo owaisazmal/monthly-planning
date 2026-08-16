@@ -7,7 +7,13 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.owaiskhan.monthlyplanning",
+      "entitlements": {
+        "com.apple.security.application-groups": [
+          "group.com.owaiskhan.monthlyplanning"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +28,9 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "@bacons/apple-targets",
+      "expo-status-bar"
     ]
   }
 }

@@ -1,0 +1,83 @@
+import SwiftUI
+
+extension Color {
+  init(hex: UInt32) {
+    self.init(
+      .sRGB,
+      red: Double((hex >> 16) & 0xFF) / 255,
+      green: Double((hex >> 8) & 0xFF) / 255,
+      blue: Double(hex & 0xFF) / 255,
+      opacity: 1
+    )
+  }
+}
+
+/// Mirrors src/theme.ts. Brand colours, the shades derived from them, and the
+/// two state colours (green / red) that are the deliberate exception.
+enum Brand {
+  static let charcoal = Color(hex: 0x4A4A4A)
+  static let grey = Color(hex: 0xCBCBCB)
+  static let ivory = Color(hex: 0xFFFFE3)
+  static let slate = Color(hex: 0x6D8196)
+}
+
+struct Theme {
+  let bg: Color
+  let card: Color
+  let ink: Color
+  let inkSoft: Color
+  let line: Color
+  let accent: Color
+  let cellEmpty: Color
+  let done: Color
+  let missed: Color
+  let onState: Color
+  /// ramp for the year grid, index 0 = empty
+  let ghLevels: [Color]
+
+  static let dark = Theme(
+    bg: Color(hex: 0x242424),
+    card: Color(hex: 0x313131),
+    ink: Brand.ivory,
+    inkSoft: Brand.grey,
+    line: Color(hex: 0x5A5A5A),
+    accent: Color(hex: 0x8FA5BA),
+    cellEmpty: Color(hex: 0x2E2E2E),
+    done: Color(hex: 0x93C63F),
+    missed: Color(hex: 0xEF4C63),
+    onState: Color(hex: 0x242424),
+    ghLevels: [
+      Color(hex: 0x2E2E2E), Color(hex: 0x2D4B1F), Color(hex: 0x497B2D),
+      Color(hex: 0x6DA939), Color(hex: 0x93C63F),
+    ]
+  )
+
+  static let light = Theme(
+    bg: Brand.ivory,
+    card: Color(hex: 0xFFFFFA),
+    ink: Brand.charcoal,
+    inkSoft: Color(hex: 0x5F6B78),
+    line: Brand.grey,
+    accent: Color(hex: 0x57697C),
+    cellEmpty: Color(hex: 0xE5E5D5),
+    done: Color(hex: 0x7FB32E),
+    missed: Color(hex: 0xE5405A),
+    onState: Color(hex: 0x2E2E2E),
+    ghLevels: [
+      Color(hex: 0xE5E5D5), Color(hex: 0xD9ECB2), Color(hex: 0xB7DC7A),
+      Color(hex: 0x9CCD4D), Color(hex: 0x7FB32E),
+    ]
+  )
+
+  static func of(_ scheme: ColorScheme) -> Theme {
+    scheme == .dark ? .dark : .light
+  }
+
+  func stateColor(_ state: Int) -> Color {
+    switch state {
+    case 1: return done
+    case 2: return missed
+    default: return cellEmpty
+    }
+  }
+}

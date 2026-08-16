@@ -41,6 +41,8 @@ import {
   ChartType,
 } from './src/storage';
 import { quoteForDate } from './src/quotes';
+import { buildSnapshot } from './src/widgets/snapshot';
+import { syncWidgets } from './src/widgets/sync';
 import {
   ThemeContext,
   Theme,
@@ -140,10 +142,10 @@ function PlannerScreen({
     }
   }, []);
 
-  // Year summary for the GRID chart; month is a dep so edits made in a month
-  // are re-read after navigating away (flushSave enqueues the write first).
+  // Year summary for the GRID chart and for the widget snapshot, so it loads
+  // regardless of which chart is showing. month is a dep so edits made in a
+  // month are re-read after navigating away (flushSave enqueues the write first).
   useEffect(() => {
-    if (chart !== 'github') return;
     let cancelled = false;
     loadYearSummary(year).then((months) => {
       if (!cancelled) setYearSummary({ year, months });
@@ -151,7 +153,7 @@ function PlannerScreen({
     return () => {
       cancelled = true;
     };
-  }, [chart, year, month]);
+  }, [year, month]);
 
   // Live tallies for the open month override the persisted snapshot in the year grid
   const yearMonths = useMemo(() => {
@@ -165,6 +167,17 @@ function PlannerScreen({
     months[month] = { habitCount: data.habits.length, tallies };
     return months;
   }, [yearSummary, year, month, data, daysInMonth]);
+
+  // Mirror a snapshot into the shared App Group for the iOS widgets. Debounced
+  // longer than the save itself — WidgetKit rate-limits timeline reloads, so
+  // there's no value in pushing one per keystroke.
+  useEffect(() => {
+    if (!loaded || !yearMonths) return;
+    const t = setTimeout(() => {
+      syncWidgets(buildSnapshot(year, month, data, yearMonths, new Date()));
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [loaded, data, year, month, yearMonths]);
 
   const shiftMonth = (delta: number) => {
     flushSave();
