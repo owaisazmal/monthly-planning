@@ -22,6 +22,7 @@ import Observations from './src/components/Observations';
 import KeyGoals from './src/components/KeyGoals';
 import AuroraBackground from './src/components/AuroraBackground';
 import ThemeIcon from './src/components/ThemeIcon';
+import StreakBadge from './src/components/StreakBadge';
 import {
   MonthData,
   emptyMonthData,
@@ -41,7 +42,7 @@ import {
   ChartType,
 } from './src/storage';
 import { quoteForDate } from './src/quotes';
-import { buildSnapshot } from './src/widgets/snapshot';
+import { buildSnapshot, computeStreaks } from './src/widgets/snapshot';
 import { syncWidgets } from './src/widgets/sync';
 import { syncReminders } from './src/notifications';
 import {
@@ -168,6 +169,19 @@ function PlannerScreen({
     months[month] = { habitCount: data.habits.length, tallies };
     return months;
   }, [yearSummary, year, month, data, daysInMonth]);
+
+  // The header flame always reports the streak as of today, never as of the
+  // month being browsed — so paging back through history doesn't put it out.
+  // Streaks are computed within a calendar year, so only the current year's
+  // summary can answer; browsing to another year holds the last known count.
+  const [streakDays, setStreakDays] = useState(0);
+  useEffect(() => {
+    if (!yearMonths || year !== now.getFullYear()) return;
+    setStreakDays(
+      computeStreaks(year, yearMonths, { month: now.getMonth(), day: now.getDate() }).current
+    );
+    // now is re-created every render; yearMonths carries the real dependency
+  }, [yearMonths, year]);
 
   // Mirror a snapshot into the shared App Group for the iOS widgets. Debounced
   // longer than the save itself — WidgetKit rate-limits timeline reloads, so
@@ -335,13 +349,16 @@ function PlannerScreen({
               <Text style={styles.headerSub}>MONTHLY</Text>
               <Text style={styles.headerTitle}>PLANNING</Text>
             </View>
-            <Pressable
-              hitSlop={10}
-              onPress={toggle}
-              style={({ pressed }) => [styles.themeBtn, pressed && { opacity: 0.6 }]}
-            >
-              <ThemeIcon mode={mode} color={palette.ink} />
-            </Pressable>
+            <View style={styles.headerActions}>
+              <StreakBadge days={streakDays} palette={palette} />
+              <Pressable
+                hitSlop={10}
+                onPress={toggle}
+                style={({ pressed }) => [styles.themeBtn, pressed && { opacity: 0.6 }]}
+              >
+                <ThemeIcon mode={mode} color={palette.ink} />
+              </Pressable>
+            </View>
           </View>
 
           {/* Month navigation */}
@@ -650,6 +667,11 @@ const makeStyles = (p: Palette) =>
       fontFamily: FONT.bold,
       letterSpacing: 1,
       color: p.ink,
+    },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
     themeBtn: {
       width: 44,

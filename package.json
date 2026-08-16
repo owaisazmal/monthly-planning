@@ -1,6 +1,7 @@
 {
   "name": "monthly-planning",
   "version": "1.0.0",
+  "author": "Owais Khan",
   "main": "index.ts",
   "dependencies": {
     "@bacons/apple-targets": "^5.0.0",

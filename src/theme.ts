@@ -21,6 +21,19 @@ export const BRAND = {
 } as const;
 
 /**
+ * Fire, for the streak flame. The second deliberate exception to the four brand
+ * colours, after the green and red of done/missed: an alight flame has to look
+ * alight, and no brand hue is warm. Mode-independent — fire is the same colour
+ * on either ground. A dead streak drops back to the palette's own ink.
+ */
+export const FIRE = {
+  bodyTop: '#F97316',
+  bodyBottom: '#FBBF24',
+  coreTop: '#FDE047',
+  coreBottom: '#FEF08A',
+} as const;
+
+/**
  * Josefin Sans ships weights 100–700 only, and iOS ignores `fontWeight` once a
  * custom `fontFamily` is set — so every weight in the UI maps onto a real font
  * file here instead of relying on synthetic bolding. The heaviest UI weights

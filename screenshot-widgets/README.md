@@ -48,8 +48,10 @@ All seven widgets exist on both platforms, built with Jetpack Glance from the
 same JSON snapshot. Two differences are inherent to the platform:
 
 - **No fixed sizes.** Android widgets are freely resizable, so each declares
-  `minWidth`/`minHeight` and picks a layout from `SizeMode.Responsive`
-  breakpoints rather than small/medium/large.
+  `minWidth`/`minHeight` and uses `SizeMode.Exact`, deriving its chart, grid and
+  row dimensions from the size it was actually handed. (`SizeMode.Responsive`
+  reports the nearest declared breakpoint instead of the real size, which pinned
+  charts to a fixed size and left most of each card empty.)
 - **No Lock Screen widgets.** The iOS accessory variants have no counterpart.
 
 Glance has no canvas primitive, so the radial rings, the year grid, the progress
@@ -59,4 +61,7 @@ is a direct port of the SwiftUI `Shape` code.
 
 One nuance worth knowing: because the chart bitmaps bake their colours at draw
 time, switching the system between light and dark doesn't restyle a widget until
-its next update. Any edit in the app triggers one.
+the app pushes a new snapshot. An edit does it; so does a cold start, since the
+snapshot effect fires on mount. Re-opening an app that's already running does
+not — nothing changed, so nothing is pushed — and neither does a bare
+`APPWIDGET_UPDATE` broadcast, which arrives without the ids Glance needs.
