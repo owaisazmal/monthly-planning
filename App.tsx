@@ -43,6 +43,7 @@ import {
 import { quoteForDate } from './src/quotes';
 import { buildSnapshot } from './src/widgets/snapshot';
 import { syncWidgets } from './src/widgets/sync';
+import { syncReminders } from './src/notifications';
 import {
   ThemeContext,
   Theme,
@@ -179,6 +180,16 @@ function PlannerScreen({
     return () => clearTimeout(t);
   }, [loaded, data, year, month, yearMonths]);
 
+  // Rewrite the reminder schedule on every change, so today's remaining nudges
+  // disappear as soon as nothing is left pending.
+  useEffect(() => {
+    if (!loaded) return;
+    const t = setTimeout(() => {
+      syncReminders({ habits: data.habits, grid: data.grid, today, now: new Date() });
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [loaded, data, today]);
+
   const shiftMonth = (delta: number) => {
     flushSave();
     const d = new Date(year, month + delta, 1);
@@ -199,7 +210,11 @@ function PlannerScreen({
     [month, flushSave]
   );
 
+  // History is read-only: only the real current day can be marked. `today` is
+  // null whenever the open month isn't the current one, which locks it wholesale.
+  // Guarded here rather than only in the UI so no caller can slip past it.
   const setCell = useCallback((day: number, habitId: string, state: CellState) => {
+    if (day !== today) return;
     setData((prev) => {
       const key = cellKey(day, habitId);
       const grid = { ...prev.grid };
@@ -207,9 +222,10 @@ function PlannerScreen({
       else grid[key] = state;
       return { ...prev, grid };
     });
-  }, []);
+  }, [today]);
 
   const cycleCell = useCallback((day: number, habitId: string) => {
+    if (day !== today) return;
     setData((prev) => {
       const key = cellKey(day, habitId);
       const next: CellState = (((prev.grid[key] ?? 0) + 1) % 3) as CellState;
@@ -218,7 +234,7 @@ function PlannerScreen({
       else grid[key] = next;
       return { ...prev, grid };
     });
-  }, []);
+  }, [today]);
 
   const addHabit = useCallback(() => {
     LayoutAnimation.configureNext(rowsAnimation);
@@ -467,6 +483,7 @@ function PlannerScreen({
               daysInMonth={daysInMonth}
               monthName={MONTH_NAMES[month]}
               isToday={selectedDay === today}
+              todayDay={today}
               habits={data.habits}
               grid={data.grid}
               onSet={setCell}

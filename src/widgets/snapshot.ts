@@ -1,5 +1,6 @@
 import { CellState, KeyGoal, MonthData, cellKey } from '../types';
 import { YearMonthSummary } from '../storage';
+import { DISCIPLINE_QUOTES } from '../quotes';
 
 /**
  * The payload handed to the iOS widgets.
@@ -39,6 +40,12 @@ export interface WidgetSnapshot {
   yearMissed: number[][];
   yearHabitCounts: number[];
   yearTotal: number;
+  /**
+   * The whole list, not just today's. The quote widget picks its own by
+   * day-of-year, so it rolls over at midnight even if the app is never opened —
+   * and `quotes.ts` stays the single source of truth.
+   */
+  quotes: string[];
 }
 
 const MONTH_NAMES = [
@@ -187,5 +194,6 @@ export function buildSnapshot(
     yearMissed,
     yearHabitCounts,
     yearTotal,
+    quotes: DISCIPLINE_QUOTES,
   };
 }

@@ -10,5 +10,6 @@ struct MonthlyPlanningWidgetBundle: WidgetBundle {
     StreakWidget()
     TodayWidget()
     GoalsWidget()
+    QuoteWidget()
   }
 }

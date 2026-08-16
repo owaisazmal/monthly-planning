@@ -10,6 +10,8 @@ interface Props {
   daysInMonth: number;
   monthName: string;
   isToday: boolean;
+  /** current day-of-month, or null when the open month isn't the current one */
+  todayDay: number | null;
   habits: Habit[];
   grid: Record<string, CellState>;
   onSet: (day: number, habitId: string, state: CellState) => void;
@@ -21,6 +23,7 @@ export default function DailyCheck({
   daysInMonth,
   monthName,
   isToday,
+  todayDay,
   habits,
   grid,
   onSet,
@@ -73,6 +76,12 @@ export default function DailyCheck({
           color: palette.inkSoft,
           paddingVertical: 8,
           textAlign: 'center',
+        },
+        locked: {
+          fontSize: 11,
+          fontFamily: FONT.regular,
+          color: palette.inkSoft,
+          paddingBottom: 8,
         },
         habitRow: {
           flexDirection: 'row',
@@ -130,6 +139,13 @@ export default function DailyCheck({
           </View>
         }
       />
+      {habits.length > 0 && !isToday && (
+        <Text style={styles.locked}>
+          {day < (todayDay ?? 0) || todayDay === null
+            ? 'Past days are locked — only today can be marked.'
+            : "You can't mark a day before it arrives."}
+        </Text>
+      )}
       {habits.length === 0 ? (
         <Text style={styles.empty}>Add habits below to start checking them off.</Text>
       ) : (
@@ -143,12 +159,14 @@ export default function DailyCheck({
               <MarkButton
                 kind="done"
                 active={state === 1}
+                disabled={!isToday}
                 palette={palette}
                 onPress={() => onSet(day, h.id, state === 1 ? 0 : 1)}
               />
               <MarkButton
                 kind="missed"
                 active={state === 2}
+                disabled={!isToday}
                 palette={palette}
                 onPress={() => onSet(day, h.id, state === 2 ? 0 : 2)}
               />

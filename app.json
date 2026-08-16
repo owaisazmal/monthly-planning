@@ -16,6 +16,7 @@
       }
     },
     "android": {
+      "package": "com.owaiskhan.monthlyplanning",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -30,6 +31,7 @@
     "plugins": [
       "expo-font",
       "@bacons/apple-targets",
+      "./plugins/withAndroidWidgets",
       "expo-status-bar"
     ]
   }

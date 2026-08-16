@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Apostrophes must be escaped in Android string resources, or aapt rejects them. -->
+<resources>
+    <string name="widget_radial_description">This month as rings, one per habit</string>
+    <string name="widget_year_description">The last 17 weeks of check-ins</string>
+    <string name="widget_progress_description">How much of the month you\'ve done</string>
+    <string name="widget_streak_description">Consecutive days you\'ve checked in</string>
+    <string name="widget_today_description">What\'s ticked off today</string>
+    <string name="widget_goals_description">This month\'s three key goals</string>
+    <string name="widget_quote_description">One discipline quote a day</string>
+</resources>

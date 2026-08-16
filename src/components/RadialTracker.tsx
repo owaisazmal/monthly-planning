@@ -113,8 +113,11 @@ export default function RadialTracker({
             fill={c.fill}
             stroke={c.stroke}
             strokeWidth={0.7}
+            // only today's wedge is interactive; history is read-only
             onPress={
-              c.habitId !== null ? () => onToggle(c.day, c.habitId as string) : undefined
+              c.habitId !== null && c.day === today
+                ? () => onToggle(c.day, c.habitId as string)
+                : undefined
             }
           />
         ))}

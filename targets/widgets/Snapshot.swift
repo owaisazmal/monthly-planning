@@ -35,6 +35,18 @@ struct PlannerSnapshot: Codable {
   let yearMissed: [[Int]]
   let yearHabitCounts: [Int]
   let yearTotal: Int
+  /// Decoded leniently — snapshots written before the quote widget existed
+  /// have no `quotes` key, and a missing one shouldn't fail the whole decode.
+  let quotes: [String]?
+
+  /// Same day-of-year rotation as `quoteForDate` in src/quotes.ts, so the app
+  /// and the widget always show the same quote on a given day.
+  func quote(on date: Date) -> String? {
+    guard let quotes, !quotes.isEmpty else { return nil }
+    let cal = Calendar.current
+    guard let dayOfYear = cal.ordinality(of: .day, in: .year, for: date) else { return nil }
+    return quotes[dayOfYear % quotes.count]
+  }
 
   /// 0 pending, 1 done, 2 missed
   func state(day: Int, habitIndex: Int) -> Int {
@@ -112,7 +124,12 @@ struct PlannerSnapshot: Codable {
       yearDone: yearDone,
       yearMissed: yearMissed,
       yearHabitCounts: Array(repeating: 4, count: 12),
-      yearTotal: 318
+      yearTotal: 318,
+      quotes: [
+        "Discipline is choosing between what you want now and what you want most.",
+        "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+        "You don't have to be extreme, just consistent.",
+      ]
     )
   }()
 }

@@ -45,11 +45,14 @@ function CrossGlyph({ color }: { color: string }) {
 export default function MarkButton({
   kind,
   active,
+  disabled = false,
   palette,
   onPress,
 }: {
   kind: 'done' | 'missed';
   active: boolean;
+  /** past and future days are read-only — only the current day can be marked */
+  disabled?: boolean;
   palette: Palette;
   onPress: () => void;
 }) {
@@ -72,7 +75,7 @@ export default function MarkButton({
   const Glyph = kind === 'done' ? CheckGlyph : CrossGlyph;
 
   return (
-    <Pressable hitSlop={6} onPress={onPress}>
+    <Pressable hitSlop={6} onPress={onPress} disabled={disabled}>
       {({ pressed }) => (
         <Animated.View
           style={{
@@ -85,7 +88,8 @@ export default function MarkButton({
             marginLeft: 8,
             borderColor: active ? fill : palette.lineFaint,
             backgroundColor: active ? fill : soft,
-            opacity: pressed ? 0.65 : 1,
+            // a locked day still shows its marks, just muted and untappable
+            opacity: disabled ? (active ? 0.5 : 0.28) : pressed ? 0.65 : 1,
             transform: [{ scale }],
           }}
         >
