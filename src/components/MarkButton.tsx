@@ -89,7 +89,7 @@ export default function MarkButton({
             transform: [{ scale }],
           }}
         >
-          <Glyph color={active ? palette.onFill : palette.inkSoft} />
+          <Glyph color={active ? palette.onState : palette.inkSoft} />
         </Animated.View>
       )}
     </Pressable>

@@ -76,7 +76,7 @@ export default function KeyGoals({ goals, onChangeText, onToggleDone }: Props) {
           overflow: 'hidden',
         },
         checkDone: {
-          color: palette.onFill,
+          color: palette.onState,
           backgroundColor: palette.done,
           borderColor: palette.done,
         },

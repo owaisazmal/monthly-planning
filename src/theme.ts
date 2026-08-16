@@ -5,16 +5,19 @@ export type ThemeMode = 'dark' | 'light';
 
 /**
  * The four brand colours the whole app is built from. Every other value in the
- * palettes below is a lighter or darker shade of one of these four hues — no
- * new hue is ever introduced. Shades exist because the four on their own can't
- * carry readable text: olive on cream is 1.96:1 and purple on cream 2.72:1,
- * where body copy needs 4.5:1.
+ * palettes below is a lighter or darker shade of one of these four — no new hue
+ * is ever introduced. Slate is the only chromatic one, so it carries every
+ * accent; the greys and ivory carry structure and text.
+ *
+ * A few shades exist because the four alone can't cover both modes: slate on
+ * ivory is 3.83:1 where body copy needs 4.5:1, so light mode darkens it and
+ * dark mode lightens it.
  */
 export const BRAND = {
-  cream: '#FDFBD4',
-  olive: '#BDB96A',
-  lavender: '#C1BFFF',
-  purple: '#CF6DFC',
+  charcoal: '#4A4A4A',
+  grey: '#CBCBCB',
+  ivory: '#FFFFE3',
+  slate: '#6D8196',
 } as const;
 
 /**
@@ -49,14 +52,16 @@ export interface Palette {
   /** brand colour — accent bars, active states, today markers, calls to action */
   accent: string;
   accentSoft: string;
-  /** foreground for anything sitting on a filled accent/done/missed surface */
-  onFill: string;
   /**
-   * Habit checked off / missed. These are the one deliberate exception to the
-   * four brand hues: green and red carry meaning no brand colour can. Both are
-   * pulled toward the palette — the green keeps the olive's yellow cast, the
-   * red keeps the purple's magenta cast — so they sit beside it rather than
-   * fighting it.
+   * Foregrounds on filled surfaces. Accent and state fills sit at opposite ends
+   * of the lightness range in light mode — a dark slate button vs a bright green
+   * one — so one shared foreground can't stay readable on both.
+   */
+  onAccent: string;
+  onState: string;
+  /**
+   * Habit checked off / missed. The one deliberate exception to the four brand
+   * colours: green and red carry meaning no brand colour can.
    */
   done: string;
   doneSoft: string;
@@ -73,51 +78,56 @@ export interface Palette {
 }
 
 export const darkPalette: Palette = {
-  bg: '#17121d',
-  blobs: [BRAND.purple, BRAND.lavender, BRAND.purple, BRAND.olive, BRAND.purple],
-  blobStrength: 0.26,
-  card: 'rgba(38,29,48,0.76)',
-  chip: 'rgba(60,48,74,0.85)',
-  ink: BRAND.cream,
-  inkSoft: BRAND.lavender,
-  line: '#5b4a6e',
-  lineFaint: '#2c2338',
-  accent: BRAND.purple,
-  accentSoft: 'rgba(207,109,252,0.18)',
-  onFill: '#1b1520',
+  bg: '#242424',
+  // charcoal blobs on a darker charcoal ground — the grey drift, in palette
+  blobs: [BRAND.charcoal, BRAND.slate, BRAND.charcoal, '#3a3a3a', BRAND.slate],
+  blobStrength: 0.55,
+  card: 'rgba(49,49,49,0.78)',
+  chip: 'rgba(66,66,66,0.9)',
+  ink: BRAND.ivory,
+  inkSoft: BRAND.grey,
+  line: '#5a5a5a',
+  lineFaint: '#343434',
+  // slate lightened so it clears 4.5:1 on the charcoal ground
+  accent: '#8fa5ba',
+  accentSoft: 'rgba(143,165,186,0.20)',
+  onAccent: '#242424',
+  onState: '#242424',
   done: '#93c63f',
   doneSoft: 'rgba(147,198,63,0.20)',
   missed: '#ef4c63',
   missedSoft: 'rgba(239,76,99,0.18)',
-  cellEmpty: '#221a2c',
-  ghLevels: ['#221a2c', '#2d4b1f', '#497b2d', '#6da939', '#93c63f'],
+  cellEmpty: '#2e2e2e',
+  ghLevels: ['#2e2e2e', '#2d4b1f', '#497b2d', '#6da939', '#93c63f'],
   ghMissed: '#7d2f3c',
-  shadow: '#0d0912',
-  shadowOpacity: 0.55,
+  shadow: '#141414',
+  shadowOpacity: 0.5,
 };
 
 export const lightPalette: Palette = {
-  bg: BRAND.cream,
-  blobs: [BRAND.lavender, BRAND.lavender, BRAND.purple, BRAND.olive, BRAND.purple],
-  blobStrength: 0.34,
-  card: 'rgba(255,254,243,0.84)',
-  chip: '#f1edc7',
-  ink: '#2f2d16',
-  inkSoft: '#6f6b3c',
-  line: '#b3ae6e',
-  lineFaint: '#e2ddab',
-  accent: BRAND.purple,
-  accentSoft: 'rgba(207,109,252,0.16)',
-  onFill: '#2f2d16',
+  bg: BRAND.ivory,
+  blobs: [BRAND.grey, BRAND.grey, BRAND.slate, BRAND.grey, BRAND.slate],
+  blobStrength: 0.3,
+  card: 'rgba(255,255,250,0.88)',
+  chip: '#ececdb',
+  ink: BRAND.charcoal,
+  // slate darkened to clear 4.5:1 on ivory
+  inkSoft: '#5f6b78',
+  line: BRAND.grey,
+  lineFaint: '#e3e3d3',
+  accent: '#57697c',
+  accentSoft: 'rgba(109,129,150,0.18)',
+  onAccent: BRAND.ivory,
+  onState: '#2e2e2e',
   done: '#7fb32e',
   doneSoft: 'rgba(147,198,63,0.24)',
   missed: '#e5405a',
   missedSoft: 'rgba(239,76,99,0.18)',
-  cellEmpty: '#efebc2',
-  ghLevels: ['#efebc2', '#d9ecb2', '#b7dc7a', '#9ccd4d', '#7fb32e'],
+  cellEmpty: '#e5e5d5',
+  ghLevels: ['#e5e5d5', '#d9ecb2', '#b7dc7a', '#9ccd4d', '#7fb32e'],
   ghMissed: '#eb8a99',
-  shadow: '#6f6b3c',
-  shadowOpacity: 0.18,
+  shadow: BRAND.charcoal,
+  shadowOpacity: 0.16,
 };
 
 /**

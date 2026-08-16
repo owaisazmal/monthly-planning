@@ -718,7 +718,7 @@ const makeStyles = (p: Palette) =>
       color: p.inkSoft,
     },
     segmentTextActive: {
-      color: p.onFill,
+      color: p.onAccent,
     },
     chartLoading: {
       height: 140,
