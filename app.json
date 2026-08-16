@@ -32,7 +32,8 @@
       "expo-font",
       "@bacons/apple-targets",
       "./plugins/withAndroidWidgets",
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-secure-store"
     ]
   }
 }

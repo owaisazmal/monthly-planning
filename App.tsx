@@ -10,7 +10,9 @@ import {
   Platform,
   Alert,
   Animated,
+  Easing,
   LayoutAnimation,
+  PanResponder,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -21,8 +23,13 @@ import HabitsList from './src/components/HabitsList';
 import Observations from './src/components/Observations';
 import KeyGoals from './src/components/KeyGoals';
 import AuroraBackground from './src/components/AuroraBackground';
-import ThemeIcon from './src/components/ThemeIcon';
+import SegmentedControl from './src/components/SegmentedControl';
+import SettingsIcon from './src/components/SettingsIcon';
 import StreakBadge from './src/components/StreakBadge';
+import AuthScreen from './src/screens/AuthScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
+import { Account, AuthState, loadAuth, saveAuth } from './src/auth';
+import { ScreenLayer, useScreenTransition } from './src/navigation';
 import {
   MonthData,
   emptyMonthData,
@@ -72,14 +79,21 @@ const MONTH_NAMES = [
 
 const rowsAnimation = LayoutAnimation.create(200, 'easeInEaseOut', 'opacity');
 
+const CHART_OPTIONS = [
+  { value: 'radial' as ChartType, label: 'RADIAL' },
+  { value: 'github' as ChartType, label: 'YEAR' },
+] as const;
+
 function PlannerScreen({
   chart,
   onSetChart,
+  onOpenSettings,
 }: {
   chart: ChartType;
   onSetChart: (c: ChartType) => void;
+  onOpenSettings: () => void;
 }) {
-  const { mode, palette, toggle } = React.useContext(ThemeContext);
+  const { mode, palette } = React.useContext(ThemeContext);
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth()); // 0-based
@@ -204,12 +218,31 @@ function PlannerScreen({
     return () => clearTimeout(t);
   }, [loaded, data, today]);
 
-  const shiftMonth = (delta: number) => {
-    flushSave();
-    const d = new Date(year, month + delta, 1);
-    setYear(d.getFullYear());
-    setMonth(d.getMonth());
-  };
+  const shiftMonth = useCallback(
+    (delta: number) => {
+      flushSave();
+      const d = new Date(year, month + delta, 1);
+      setYear(d.getFullYear());
+      setMonth(d.getMonth());
+    },
+    [flushSave, year, month]
+  );
+
+  // The arrows are still the obvious control; this just lets the month bar be
+  // dragged the way the months themselves move — left for the next one.
+  const monthSwipe = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_e, g) =>
+          Math.abs(g.dx) > 12 && Math.abs(g.dx) > Math.abs(g.dy) * 1.6,
+        onPanResponderRelease: (_e, g) => {
+          if (Math.abs(g.dx) > 44 || Math.abs(g.vx) > 0.35) {
+            shiftMonth(g.dx < 0 ? 1 : -1);
+          }
+        },
+      }),
+    [shiftMonth]
+  );
 
   const gotoDate = useCallback(
     (m: number, day: number) => {
@@ -304,20 +337,40 @@ function PlannerScreen({
     return { done, total, pct: total ? Math.round((done / total) * 100) : 0 };
   }, [data.grid, data.habits, daysInMonth]);
 
-  // Chart cross-fade on chart-type or month switch
+  /**
+   * Chart and month-label transitions.
+   *
+   * Swapping chart type is a swap in place, so it cross-fades. Moving month is
+   * travel, so whatever arrives comes in from the side the month came from —
+   * `enterFrom` is -1 going back, +1 going forward, and 0 for a swap, which
+   * collapses the slide back into a plain cross-fade.
+   */
   const chartAnim = useRef(new Animated.Value(1)).current;
-  const chartKey = `${chart}-${year}-${month}`;
-  const prevChartKey = useRef(chartKey);
+  const monthAnim = useRef(new Animated.Value(1)).current;
+  const [enterFrom, setEnterFrom] = useState(0);
+  const monthIndex = year * 12 + month;
+  const prevKey = useRef({ chart, monthIndex });
+
   useEffect(() => {
-    if (prevChartKey.current === chartKey) return;
-    prevChartKey.current = chartKey;
-    chartAnim.setValue(0);
-    Animated.timing(chartAnim, {
-      toValue: 1,
-      duration: 240,
-      useNativeDriver: true,
-    }).start();
-  }, [chartKey, chartAnim]);
+    const moved = monthIndex - prevKey.current.monthIndex;
+    const swapped = chart !== prevKey.current.chart;
+    if (!moved && !swapped) return;
+    prevKey.current = { chart, monthIndex };
+    setEnterFrom(Math.sign(moved));
+
+    const replay = (value: Animated.Value, duration: number) => {
+      value.setValue(0);
+      Animated.timing(value, {
+        toValue: 1,
+        duration,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    };
+    replay(chartAnim, 260);
+    // the label only moves when the month does, not when the chart is swapped
+    if (moved) replay(monthAnim, 240);
+  }, [chart, monthIndex, chartAnim, monthAnim]);
 
   // Animated monthly progress bar
   const pctAnim = useRef(new Animated.Value(0)).current;
@@ -353,16 +406,18 @@ function PlannerScreen({
               <StreakBadge days={streakDays} palette={palette} />
               <Pressable
                 hitSlop={10}
-                onPress={toggle}
+                accessibilityRole="button"
+                accessibilityLabel="Settings"
+                onPress={onOpenSettings}
                 style={({ pressed }) => [styles.themeBtn, pressed && { opacity: 0.6 }]}
               >
-                <ThemeIcon mode={mode} color={palette.ink} />
+                <SettingsIcon color={palette.ink} />
               </Pressable>
             </View>
           </View>
 
           {/* Month navigation */}
-          <View style={styles.monthNav}>
+          <View style={styles.monthNav} {...monthSwipe.panHandlers}>
             <Pressable
               hitSlop={10}
               onPress={() => shiftMonth(-1)}
@@ -370,10 +425,25 @@ function PlannerScreen({
             >
               <Text style={styles.navArrow}>‹</Text>
             </Pressable>
-            <View style={styles.monthLabelBox}>
+            <Animated.View
+              style={[
+                styles.monthLabelBox,
+                {
+                  opacity: monthAnim,
+                  transform: [
+                    {
+                      translateX: monthAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [enterFrom * 18, 0],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
               <Text style={styles.monthLabel}>{MONTH_NAMES[month]}</Text>
               <Text style={styles.yearLabel}>{year}</Text>
-            </View>
+            </Animated.View>
             <Pressable
               hitSlop={10}
               onPress={() => shiftMonth(1)}
@@ -388,24 +458,13 @@ function PlannerScreen({
             <View style={styles.chartHead}>
               <View style={styles.accent} />
               <Text style={styles.chartTitle}>TRACKER</Text>
-              <View style={styles.segment}>
-                {(['radial', 'github'] as ChartType[]).map((c) => (
-                  <Pressable
-                    key={c}
-                    style={[styles.segmentBtn, chart === c && styles.segmentBtnActive]}
-                    onPress={() => onSetChart(c)}
-                  >
-                    <Text
-                      style={[
-                        styles.segmentText,
-                        chart === c && styles.segmentTextActive,
-                      ]}
-                    >
-                      {c === 'radial' ? 'RADIAL' : 'YEAR'}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+              <SegmentedControl
+                options={CHART_OPTIONS}
+                value={chart}
+                onChange={onSetChart}
+                verticalPadding={6}
+                style={styles.segment}
+              />
             </View>
 
             <Animated.View
@@ -414,6 +473,12 @@ function PlannerScreen({
                 alignItems: 'center',
                 opacity: chartAnim,
                 transform: [
+                  {
+                    translateX: chartAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [enterFrom * 34, 0],
+                    }),
+                  },
                   {
                     scale: chartAnim.interpolate({
                       inputRange: [0, 1],
@@ -582,8 +647,123 @@ function PlannerScreen({
   );
 }
 
+type Screen = 'planner' | 'settings' | 'auth';
+type AuthVariant = 'onboarding' | 'standalone';
+
+/**
+ * The screen stack and everything that moves between its layers.
+ *
+ * Split out of App so it mounts only once the persisted state has landed:
+ * every transition then initialises at rest, and nothing slides in on launch.
+ */
+function Navigator({
+  initialScreen,
+  account,
+  chart,
+  onSetChart,
+  onSignIn,
+  onSignOut,
+  onSkipOnboarding,
+}: {
+  initialScreen: Exclude<Screen, 'settings'>;
+  account: Account | null;
+  chart: ChartType;
+  onSetChart: (c: ChartType) => void;
+  onSignIn: (account: Account) => void;
+  onSignOut: () => void;
+  onSkipOnboarding: () => void;
+}) {
+  const [screen, setScreen] = useState<Screen>(initialScreen);
+  // Frozen at the moment the auth screen opens rather than derived from the
+  // account, which changes the instant someone signs in — mid-exit, that would
+  // swap the screen's back button in behind the animation.
+  const [authVariant, setAuthVariant] = useState<AuthVariant>(
+    initialScreen === 'auth' ? 'onboarding' : 'standalone'
+  );
+
+  // Settings stays in the stack underneath a sign-in reached from it, so
+  // dismissing that sign-in slides Settings back rather than rebuilding it.
+  const settingsLayer = useScreenTransition(
+    screen === 'settings' || (screen === 'auth' && authVariant === 'standalone')
+  );
+  const authLayer = useScreenTransition(screen === 'auth');
+
+  const dismissAuth = () => {
+    if (authVariant === 'standalone') {
+      setScreen('settings');
+    } else {
+      onSkipOnboarding();
+      setScreen('planner');
+    }
+  };
+
+  const authenticated = (acc: Account) => {
+    onSignIn(acc);
+    // back to Settings if that's where the sign-in started, otherwise the
+    // planner — which on first run is the screen behind the onboarding fade
+    setScreen(authVariant === 'standalone' ? 'settings' : 'planner');
+  };
+
+  return (
+    <>
+      {/*
+        The planner is never unmounted, so opening Settings doesn't throw away
+        the open month, the selected day or the scroll position — and it keeps
+        drawing through the transition, receding under whatever slides over it,
+        until it is genuinely out of sight.
+      */}
+      <ScreenLayer
+        coveredBy={settingsLayer.progress}
+        hidden={settingsLayer.settledOpen || authLayer.settledOpen}
+      >
+        <PlannerScreen
+          chart={chart}
+          onSetChart={onSetChart}
+          onOpenSettings={() => setScreen('settings')}
+        />
+      </ScreenLayer>
+
+      <ScreenLayer
+        transition={settingsLayer}
+        coveredBy={authVariant === 'standalone' ? authLayer.progress : undefined}
+        onSwipeBack={() => setScreen('planner')}
+      >
+        <SettingsScreen
+          account={account}
+          onSignIn={() => {
+            setAuthVariant('standalone');
+            setScreen('auth');
+          }}
+          onSignOut={onSignOut}
+          onClose={() => setScreen('planner')}
+        />
+      </ScreenLayer>
+
+      {/*
+        First run has nothing behind it to push against, so the welcome screen
+        rises into place instead of sliding in from the side — and there is
+        nowhere to swipe back to.
+      */}
+      <ScreenLayer
+        transition={authLayer}
+        presentation={authVariant === 'onboarding' ? 'fade' : 'push'}
+        swipeBackEnabled={authVariant === 'standalone'}
+        onSwipeBack={dismissAuth}
+      >
+        <AuthScreen
+          variant={authVariant}
+          onAuthenticated={authenticated}
+          onDismiss={dismissAuth}
+        />
+      </ScreenLayer>
+    </>
+  );
+}
+
 export default function App() {
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [auth, setAuth] = useState<AuthState | null>(null);
+  const [start, setStart] = useState<'planner' | 'auth' | null>(null);
   const [fontsLoaded] = useFonts({
     JosefinSans_400Regular,
     JosefinSans_400Regular_Italic,
@@ -594,11 +774,21 @@ export default function App() {
 
   useEffect(() => {
     loadSettings().then(setSettings);
+    // The welcome screen is only shown to someone who has never answered it,
+    // so the first screen can't be chosen until this lands.
+    loadAuth().then((a) => {
+      setAuth(a);
+      setStart(a.onboarded ? 'planner' : 'auth');
+    });
   }, []);
 
   useEffect(() => {
     if (settings) saveSettings(settings);
   }, [settings]);
+
+  useEffect(() => {
+    if (auth) saveAuth(auth);
+  }, [auth]);
 
   const mode: ThemeMode = settings?.theme ?? 'dark';
   const theme: Theme = useMemo(
@@ -614,19 +804,25 @@ export default function App() {
     [mode]
   );
 
-  // hold the first paint until both the persisted theme and the font are ready,
-  // so nothing flashes in the system font or the wrong palette
-  if (!settings || !fontsLoaded) return null;
+  // hold the first paint until the persisted theme, the account and the font
+  // are all ready, so nothing flashes in the system font, the wrong palette, or
+  // the wrong screen
+  if (!settings || !auth || !start || !fontsLoaded) return null;
 
   return (
     <SafeAreaProvider>
       <ThemeContext.Provider value={theme}>
-        {/* The drifting background sits behind every screen; cards are translucent so it reads through */}
+        {/* The drifting background sits behind every layer; screens are transparent so it reads through */}
         <View style={{ flex: 1, backgroundColor: theme.palette.bg }}>
           <AuroraBackground />
-          <PlannerScreen
+          <Navigator
+            initialScreen={start}
+            account={auth.account}
             chart={settings.chart}
             onSetChart={(chart) => setSettings((prev) => ({ ...(prev as Settings), chart }))}
+            onSignIn={(account) => setAuth({ account, onboarded: true })}
+            onSignOut={() => setAuth({ account: null, onboarded: true })}
+            onSkipOnboarding={() => setAuth({ account: null, onboarded: true })}
           />
         </View>
       </ThemeContext.Provider>
@@ -749,28 +945,11 @@ const makeStyles = (p: Palette) =>
       letterSpacing: 2,
       color: p.ink,
     },
+    // The options share the width evenly so the sliding pill is one size in
+    // both positions; that needs a definite width here, since this row sizes
+    // itself to its content.
     segment: {
-      flexDirection: 'row',
-      borderRadius: RADIUS.control,
-      backgroundColor: p.chip,
-      padding: 3,
-    },
-    segmentBtn: {
-      paddingVertical: 6,
-      paddingHorizontal: 13,
-      borderRadius: RADIUS.chip,
-    },
-    segmentBtnActive: {
-      backgroundColor: p.accent,
-    },
-    segmentText: {
-      fontSize: 10,
-      fontFamily: FONT.bold,
-      letterSpacing: 1,
-      color: p.inkSoft,
-    },
-    segmentTextActive: {
-      color: p.onAccent,
+      width: 152,
     },
     chartLoading: {
       height: 140,

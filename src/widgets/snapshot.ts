@@ -1,5 +1,6 @@
 import { CellState, KeyGoal, MonthData, cellKey } from '../types';
 import { YearMonthSummary } from '../storage';
+import { ThemeMode } from '../theme';
 import { DISCIPLINE_QUOTES } from '../quotes';
 
 /**
@@ -17,6 +18,13 @@ export interface WidgetHabit {
 
 export interface WidgetSnapshot {
   updatedAt: number;
+  /**
+   * The app's own appearance setting, which the widgets follow instead of the
+   * phone's. It travels in the snapshot rather than being read from shared
+   * storage separately, so a widget can never render a colour scheme from one
+   * write and data from another.
+   */
+  theme: ThemeMode;
   year: number;
   /** 0-based, matching the app */
   month: number;
@@ -135,7 +143,8 @@ export function buildSnapshot(
   month: number,
   data: MonthData,
   yearMonths: YearMonthSummary[],
-  now: Date
+  now: Date,
+  theme: ThemeMode
 ): WidgetSnapshot {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
