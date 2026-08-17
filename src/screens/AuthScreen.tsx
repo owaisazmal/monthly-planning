@@ -14,7 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BackButton from '../components/BackButton';
 import SegmentedControl from '../components/SegmentedControl';
 import ForgotPasswordScreen from './ForgotPasswordScreen';
-import { ScreenLayer, useScreenTransition } from '../navigation';
+// straight to the module, not the barrel: the barrel also pulls in Navigator,
+// which imports this screen back
+import { ScreenLayer, useScreenTransition } from '../navigation/ScreenLayer';
 import { Account, isEmail } from '../auth';
 import { FONT, Palette, RADIUS, cardSurface, useTheme } from '../theme';
 

@@ -2,6 +2,7 @@ import { CellState, KeyGoal, MonthData, cellKey } from '../types';
 import { YearMonthSummary } from '../storage';
 import { ThemeMode } from '../theme';
 import { DISCIPLINE_QUOTES } from '../quotes';
+import { computeStreaks } from '../streaks';
 
 /**
  * The payload handed to the iOS widgets.
@@ -60,62 +61,6 @@ const MONTH_NAMES = [
   'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
   'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER',
 ];
-
-/** Flat day-of-year view of a whole year, so streaks can cross month borders */
-function flattenYear(year: number, months: YearMonthSummary[]) {
-  const active: boolean[] = [];
-  const perfect: boolean[] = [];
-  const index: { month: number; day: number }[] = [];
-  for (let m = 0; m < 12; m++) {
-    const info = months[m];
-    const len = new Date(year, m + 1, 0).getDate();
-    for (let d = 1; d <= len; d++) {
-      const t = info?.tallies[d];
-      const done = t?.done ?? 0;
-      const count = info?.habitCount ?? 0;
-      active.push(done > 0);
-      perfect.push(count > 0 && done >= count);
-      index.push({ month: m, day: d });
-    }
-  }
-  return { active, perfect, index };
-}
-
-/**
- * `current` counts back from today, or from yesterday when today isn't marked
- * yet — a streak shouldn't look broken just because the day isn't over.
- * Streaks are computed within one calendar year, so a run crossing New Year
- * restarts at January 1.
- */
-export function computeStreaks(
-  year: number,
-  months: YearMonthSummary[],
-  today: { month: number; day: number } | null
-): { current: number; best: number; perfect: number } {
-  const { active, perfect, index } = flattenYear(year, months);
-
-  let best = 0;
-  let run = 0;
-  for (const a of active) {
-    run = a ? run + 1 : 0;
-    if (run > best) best = run;
-  }
-
-  if (!today) return { current: 0, best, perfect: 0 };
-
-  const todayIdx = index.findIndex((e) => e.month === today.month && e.day === today.day);
-  if (todayIdx < 0) return { current: 0, best, perfect: 0 };
-
-  const countBack = (flags: boolean[]) => {
-    let start = todayIdx;
-    if (!flags[start]) start = todayIdx - 1; // today not marked yet — fall back to yesterday
-    let n = 0;
-    for (let i = start; i >= 0 && flags[i]; i--) n++;
-    return n;
-  };
-
-  return { current: countBack(active), best, perfect: countBack(perfect) };
-}
 
 /** Per-day per-habit states, packed one character per habit */
 function packGrid(data: MonthData, daysInMonth: number): Record<string, string> {
