@@ -9,7 +9,12 @@ interface Props {
   months: YearMonthSummary[];
   /** month currently open in the planner; the chart auto-scrolls to it */
   focusMonth: number;
-  today: { month: number; day: number } | null;
+  /**
+   * The real current date, not the browsed one — the chart shows a whole year
+   * at a time, so it needs to know where today falls in it even when that is
+   * some other year entirely.
+   */
+  now: { year: number; month: number; day: number };
   selected: { month: number; day: number };
   onSelectDate: (month: number, day: number) => void;
 }
@@ -26,12 +31,26 @@ export default function YearChart({
   year,
   months,
   focusMonth,
-  today,
+  now,
   selected,
   onSelectDate,
 }: Props) {
   const { palette } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
+
+  const today = year === now.year ? { month: now.month, day: now.day } : null;
+
+  /**
+   * Days that haven't happened yet are dead to the touch.
+   *
+   * Only the real today can ever be marked, so tapping into the future would
+   * page the planner to a month whose every row is locked — a dead end that
+   * looks like the app broke rather than a rule being enforced.
+   */
+  const isFuture = (month: number, day: number) => {
+    if (year !== now.year) return year > now.year;
+    return month > now.month || (month === now.month && day > now.day);
+  };
 
   // Calendar geometry for the whole year: GitHub layout, columns = weeks, rows = Sun..Sat
   const cal = useMemo(() => {
@@ -168,14 +187,22 @@ export default function YearChart({
                     }
                     const isSelected = date.m === selected.month && date.d === selected.day;
                     const isToday = today !== null && date.m === today.month && date.d === today.day;
+                    const future = isFuture(date.m, date.d);
                     return (
                       <Pressable
                         key={r}
                         hitSlop={1}
+                        disabled={future}
+                        accessibilityRole="button"
+                        accessibilityState={{ disabled: future, selected: isSelected }}
                         onPress={() => onSelectDate(date.m, date.d)}
                         style={[
                           styles.cell,
                           { backgroundColor: colorFor(date.m, date.d) },
+                          // Deliberately not dimmed. An empty cell is already
+                          // near-invisible against the dark card, so fading the
+                          // rest of the year erases the grid's shape instead of
+                          // reading as "not yet" — the days ahead just don't respond.
                           isToday && { borderWidth: 1.5, borderColor: palette.accent },
                           isSelected && { borderWidth: 1.5, borderColor: palette.ink },
                         ]}

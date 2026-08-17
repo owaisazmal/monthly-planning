@@ -22,7 +22,7 @@ struct RadialWidgetView: View {
   @Environment(\.colorScheme) private var scheme
 
   var body: some View {
-    let theme = Theme.of(scheme)
+    let theme = Theme.of(entry.snapshot, fallback: scheme)
     let snap = entry.snapshot
 
     Group {
@@ -122,7 +122,7 @@ struct YearWidgetView: View {
   @Environment(\.colorScheme) private var scheme
 
   var body: some View {
-    let theme = Theme.of(scheme)
+    let theme = Theme.of(entry.snapshot, fallback: scheme)
     let snap = entry.snapshot
 
     VStack(alignment: .leading, spacing: 8) {
@@ -167,7 +167,7 @@ struct ProgressWidgetView: View {
   @Environment(\.colorScheme) private var scheme
 
   var body: some View {
-    let theme = Theme.of(scheme)
+    let theme = Theme.of(entry.snapshot, fallback: scheme)
     let snap = entry.snapshot
     let progress = snap.monthTotal > 0 ? Double(snap.monthDone) / Double(snap.monthTotal) : 0
 

@@ -14,6 +14,10 @@ struct PlannerSnapshot: Codable {
   }
 
   let updatedAt: Double
+  /// The app's appearance setting — "dark" or "light". Optional because
+  /// snapshots written before the widgets followed the app have no such key,
+  /// and a missing one falls back to the system scheme rather than failing.
+  let theme: String?
   let year: Int
   /// 0-based, matching the app
   let month: Int
@@ -97,6 +101,8 @@ struct PlannerSnapshot: Codable {
 
     return PlannerSnapshot(
       updatedAt: now.timeIntervalSince1970 * 1000,
+      // the gallery preview has no app setting to follow yet
+      theme: nil,
       year: year,
       month: month,
       monthName: names[min(max(month, 0), 11)],

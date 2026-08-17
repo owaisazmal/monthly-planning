@@ -33,7 +33,8 @@
       "@bacons/apple-targets",
       "./plugins/withAndroidWidgets",
       "expo-status-bar",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-video"
     ]
   }
 }

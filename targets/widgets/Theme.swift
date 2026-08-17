@@ -69,8 +69,19 @@ struct Theme {
     ]
   )
 
-  static func of(_ scheme: ColorScheme) -> Theme {
-    scheme == .dark ? .dark : .light
+  /// Widgets follow the app's own appearance setting, not the phone's — the
+  /// planner is the thing they are an extension of, so a light app next to a
+  /// dark widget would read as a bug.
+  ///
+  /// `scheme` is only the fallback, for a snapshot written before the app
+  /// started sending its theme, or the gallery preview which has no app
+  /// setting to follow.
+  static func of(_ snapshot: PlannerSnapshot, fallback scheme: ColorScheme) -> Theme {
+    switch snapshot.theme {
+    case "dark": return .dark
+    case "light": return .light
+    default: return scheme == .dark ? .dark : .light
+    }
   }
 
   func stateColor(_ state: Int) -> Color {

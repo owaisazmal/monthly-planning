@@ -200,13 +200,17 @@ function PlannerScreen({
   // Mirror a snapshot into the shared App Group for the iOS widgets. Debounced
   // longer than the save itself — WidgetKit rate-limits timeline reloads, so
   // there's no value in pushing one per keystroke.
+  //
+  // `mode` is a dependency because the widgets take their colour scheme from
+  // the snapshot: without it, switching the app's theme would leave every
+  // widget on the old one until the next edit happened to push a new snapshot.
   useEffect(() => {
     if (!loaded || !yearMonths) return;
     const t = setTimeout(() => {
-      syncWidgets(buildSnapshot(year, month, data, yearMonths, new Date()));
+      syncWidgets(buildSnapshot(year, month, data, yearMonths, new Date(), mode));
     }, 1200);
     return () => clearTimeout(t);
-  }, [loaded, data, year, month, yearMonths]);
+  }, [loaded, data, year, month, yearMonths, mode]);
 
   // Rewrite the reminder schedule on every change, so today's remaining nudges
   // disappear as soon as nothing is left pending.
@@ -504,11 +508,11 @@ function PlannerScreen({
                   year={year}
                   months={yearMonths}
                   focusMonth={month}
-                  today={
-                    year === now.getFullYear()
-                      ? { month: now.getMonth(), day: now.getDate() }
-                      : null
-                  }
+                  now={{
+                    year: now.getFullYear(),
+                    month: now.getMonth(),
+                    day: now.getDate(),
+                  }}
                   selected={{ month, day: selectedDay }}
                   onSelectDate={gotoDate}
                 />

@@ -184,6 +184,7 @@ export function buildSnapshot(
 
   return {
     updatedAt: now.getTime(),
+    theme,
     year,
     month,
     monthName: MONTH_NAMES[month],

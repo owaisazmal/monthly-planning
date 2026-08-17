@@ -119,7 +119,7 @@ export default function SettingsScreen({ account, onSignIn, onSignOut, onClose }
           />
         </View>
 
-        <Text style={styles.footer}>Widgets follow your phone's appearance, not this.</Text>
+        <Text style={styles.footer}>Your widgets follow this too.</Text>
       </ScrollView>
     </SafeAreaView>
   );

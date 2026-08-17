@@ -1,8 +1,9 @@
 # Widget screenshots
 
 Captured from the iPhone 16 Pro simulator with sample data (four habits, May–Aug
-2026). Every page is shot in both themes — the widgets follow the system
-appearance, not the app's own theme toggle.
+2026). Every page is shot in both themes — the widgets follow the app's own
+theme toggle, which they read from the snapshot. The system appearance is only
+the fallback, for a widget placed before the app has ever written one.
 
 | File | Widgets shown |
 | --- | --- |
@@ -59,9 +60,9 @@ ring and the pip strip are rasterised with `android.graphics.Canvas` and handed
 over as `Image`s (see `targets/android-widgets/kotlin/Charts.kt`). The geometry
 is a direct port of the SwiftUI `Shape` code.
 
-One nuance worth knowing: because the chart bitmaps bake their colours at draw
-time, switching the system between light and dark doesn't restyle a widget until
-the app pushes a new snapshot. An edit does it; so does a cold start, since the
-snapshot effect fires on mount. Re-opening an app that's already running does
-not — nothing changed, so nothing is pushed — and neither does a bare
+One nuance worth knowing: the chart bitmaps bake their colours at draw time, so
+a widget only restyles when the app pushes a new snapshot. Toggling the theme in
+Settings pushes one, which is the case that matters. A cold start pushes one too,
+since the snapshot effect fires on mount. Re-opening an app that's already
+running does not — nothing changed, so nothing is sent — and neither does a bare
 `APPWIDGET_UPDATE` broadcast, which arrives without the ids Glance needs.

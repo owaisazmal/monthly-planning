@@ -14,6 +14,12 @@ data class Habit(val id: String, val name: String)
 data class Goal(val text: String, val done: Boolean)
 
 data class PlannerSnapshot(
+  /**
+   * The app's appearance setting — "dark" or "light". Null for snapshots
+   * written before the widgets followed the app, and for the picker preview;
+   * both fall back to the system setting.
+   */
+  val theme: String?,
   val year: Int,
   val month: Int,
   val monthName: String,
@@ -85,6 +91,7 @@ data class PlannerSnapshot(
         (0 until (arr?.length() ?: 0)).map { arr!!.optString(it) }
       }
       return PlannerSnapshot(
+        theme = if (o.isNull("theme")) null else o.optString("theme").ifEmpty { null },
         year = o.optInt("year"),
         month = o.optInt("month"),
         monthName = o.optString("monthName"),
@@ -112,6 +119,8 @@ data class PlannerSnapshot(
 
     /** Shown in the widget picker and before the app has ever written a snapshot. */
     val placeholder = PlannerSnapshot(
+      // the picker preview has no app setting to follow yet
+      theme = null,
       year = 2026,
       month = 7,
       monthName = "AUGUST",

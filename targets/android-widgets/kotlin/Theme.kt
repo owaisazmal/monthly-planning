@@ -73,10 +73,23 @@ data class WidgetTheme(
       ),
     )
 
-    fun of(context: Context): WidgetTheme {
-      val night = context.resources.configuration.uiMode and
-        Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-      return if (night) dark else light
+    /**
+     * Widgets follow the app's own appearance setting, not the phone's — the
+     * planner is the thing they are an extension of, so a light app next to a
+     * dark widget would read as a bug.
+     *
+     * The system setting is only the fallback, for a snapshot written before
+     * the app started sending its theme, or the picker preview which has no
+     * app setting to follow.
+     */
+    fun of(context: Context, snapshot: PlannerSnapshot?): WidgetTheme = when (snapshot?.theme) {
+      "dark" -> dark
+      "light" -> light
+      else -> {
+        val night = context.resources.configuration.uiMode and
+          Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+        if (night) dark else light
+      }
     }
   }
 }

@@ -17,7 +17,7 @@ struct StreakWidgetView: View {
   }
 
   var body: some View {
-    let theme = Theme.of(scheme)
+    let theme = Theme.of(entry.snapshot, fallback: scheme)
     let snap = entry.snapshot
 
     switch family {
@@ -145,7 +145,7 @@ struct TodayWidgetView: View {
   }
 
   var body: some View {
-    let theme = Theme.of(scheme)
+    let theme = Theme.of(entry.snapshot, fallback: scheme)
     let snap = entry.snapshot
     let visible = Array(rows.prefix(limit))
     let doneToday = rows.filter { $0.state == 1 }.count
@@ -231,7 +231,7 @@ struct GoalsWidgetView: View {
   @Environment(\.colorScheme) private var scheme
 
   var body: some View {
-    let theme = Theme.of(scheme)
+    let theme = Theme.of(entry.snapshot, fallback: scheme)
     let snap = entry.snapshot
     let goals = snap.goals
     let doneCount = goals.filter { $0.done }.count

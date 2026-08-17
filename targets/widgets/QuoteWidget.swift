@@ -20,7 +20,7 @@ struct QuoteWidgetView: View {
   }
 
   var body: some View {
-    let theme = Theme.of(scheme)
+    let theme = Theme.of(entry.snapshot, fallback: scheme)
     let quote = entry.snapshot.quote(on: entry.date)
 
     switch family {

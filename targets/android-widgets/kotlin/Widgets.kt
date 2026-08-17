@@ -120,8 +120,8 @@ class RadialWidget : GlanceAppWidget() {
 @Composable
 private fun RadialContent() {
   val context = LocalContext.current
-  val theme = WidgetTheme.of(context)
   val snap = snapshotOf(context)
+  val theme = WidgetTheme.of(context, snap)
   val size = LocalSize.current
   val availW = size.width.value - PAD * 2
   val availH = size.height.value - PAD * 2
@@ -184,8 +184,8 @@ class YearWidget : GlanceAppWidget() {
 @Composable
 private fun YearContent() {
   val context = LocalContext.current
-  val theme = WidgetTheme.of(context)
   val snap = snapshotOf(context)
+  val theme = WidgetTheme.of(context, snap)
   val size = LocalSize.current
   val availW = size.width.value - PAD * 2
   val availH = size.height.value - PAD * 2
@@ -236,8 +236,8 @@ class ProgressWidget : GlanceAppWidget() {
 @Composable
 private fun ProgressContent() {
   val context = LocalContext.current
-  val theme = WidgetTheme.of(context)
   val snap = snapshotOf(context)
+  val theme = WidgetTheme.of(context, snap)
   val size = LocalSize.current
   val availW = size.width.value - PAD * 2
   val availH = size.height.value - PAD * 2
@@ -309,8 +309,8 @@ class StreakWidget : GlanceAppWidget() {
 @Composable
 private fun StreakContent() {
   val context = LocalContext.current
-  val theme = WidgetTheme.of(context)
   val snap = snapshotOf(context)
+  val theme = WidgetTheme.of(context, snap)
   val size = LocalSize.current
   val availH = size.height.value - PAD * 2
   val wide = size.width.value > size.height.value * 1.4f
@@ -396,8 +396,8 @@ private fun StateChip(state: Int, theme: WidgetTheme) {
 @Composable
 private fun TodayContent() {
   val context = LocalContext.current
-  val theme = WidgetTheme.of(context)
   val snap = snapshotOf(context)
+  val theme = WidgetTheme.of(context, snap)
   val size = LocalSize.current
   val availH = size.height.value - PAD * 2
 
@@ -464,8 +464,8 @@ class GoalsWidget : GlanceAppWidget() {
 @Composable
 private fun GoalsContent() {
   val context = LocalContext.current
-  val theme = WidgetTheme.of(context)
   val snap = snapshotOf(context)
+  val theme = WidgetTheme.of(context, snap)
   val size = LocalSize.current
   val availH = size.height.value - PAD * 2
   val doneCount = snap.goals.count { it.done }
@@ -521,8 +521,8 @@ class QuoteWidget : GlanceAppWidget() {
 @Composable
 private fun QuoteContent() {
   val context = LocalContext.current
-  val theme = WidgetTheme.of(context)
   val snap = snapshotOf(context)
+  val theme = WidgetTheme.of(context, snap)
   val size = LocalSize.current
   val availW = size.width.value - PAD * 2
   val availH = size.height.value - PAD * 2
