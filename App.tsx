@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AuroraBackground from './src/components/AuroraBackground';
 import { Navigator } from './src/navigation';
 import { AuthState, loadAuth, saveAuth } from './src/auth';
+import { loadIntroSeen, saveIntroSeen } from './src/onboarding';
 import { Settings, loadSettings, saveSettings } from './src/storage';
 import {
   ThemeContext,
@@ -29,7 +30,7 @@ import {
 export default function App() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [auth, setAuth] = useState<AuthState | null>(null);
-  const [start, setStart] = useState<'planner' | 'auth' | null>(null);
+  const [start, setStart] = useState<'planner' | 'auth' | 'intro' | null>(null);
   const [fontsLoaded] = useFonts({
     JosefinSans_400Regular,
     JosefinSans_400Regular_Italic,
@@ -40,11 +41,12 @@ export default function App() {
 
   useEffect(() => {
     loadSettings().then(setSettings);
-    // The welcome screen is only shown to someone who has never answered it,
-    // so the first screen can't be chosen until this lands.
-    loadAuth().then((a) => {
+    // Neither the intro nor the welcome screen is shown to someone who has
+    // already answered it, so the first screen can't be chosen until both
+    // flags land. Intro first, then sign-in, then the planner.
+    Promise.all([loadAuth(), loadIntroSeen()]).then(([a, introSeen]) => {
       setAuth(a);
-      setStart(a.onboarded ? 'planner' : 'auth');
+      setStart(a.onboarded ? 'planner' : introSeen ? 'auth' : 'intro');
     });
   }, []);
 
@@ -89,6 +91,7 @@ export default function App() {
             onSignIn={(account) => setAuth({ account, onboarded: true })}
             onSignOut={() => setAuth({ account: null, onboarded: true })}
             onSkipOnboarding={() => setAuth({ account: null, onboarded: true })}
+            onIntroDone={saveIntroSeen}
           />
         </View>
       </ThemeContext.Provider>

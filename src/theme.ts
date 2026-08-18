@@ -84,12 +84,6 @@ export interface Palette {
   /** GitHub-style intensity ramp, index 0 = empty */
   ghLevels: string[];
   ghMissed: string;
-  /**
-   * Veil laid over the observations card's video backdrop. The footage is
-   * busy and full-contrast; without this the writing on top of it competes
-   * with whatever frame happens to be showing.
-   */
-  videoVeil: string;
   /** card drop-shadow — tinted, so even shadows stay inside the brand hues */
   shadow: string;
   /** shadow strength; heavier on dark, barely there on light */
@@ -119,7 +113,6 @@ export const darkPalette: Palette = {
   cellEmpty: '#2e2e2e',
   ghLevels: ['#2e2e2e', '#2d4b1f', '#497b2d', '#6da939', '#93c63f'],
   ghMissed: '#7d2f3c',
-  videoVeil: 'rgba(36,36,36,0.45)',
   shadow: '#141414',
   shadowOpacity: 0.5,
 };
@@ -146,10 +139,6 @@ export const lightPalette: Palette = {
   cellEmpty: '#e5e5d5',
   ghLevels: ['#e5e5d5', '#d9ecb2', '#b7dc7a', '#9ccd4d', '#7fb32e'],
   ghMissed: '#eb8a99',
-  // ivory, and heavier than the dark veil: this cut is bright footage with dark
-  // line art, which collides with charcoal text in a way the dark cut's glow
-  // never does with ivory
-  videoVeil: 'rgba(255,255,227,0.58)',
   shadow: BRAND.charcoal,
   shadowOpacity: 0.16,
 };

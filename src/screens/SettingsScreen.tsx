@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SectionHeader from '../components/SectionHeader';
 import SegmentedControl from '../components/SegmentedControl';
 import ThemeIcon from '../components/ThemeIcon';
+import ThemeBackdrop from '../components/ThemeBackdrop';
 import { Account, displayName } from '../auth';
 import { FONT, Palette, RADIUS, ThemeMode, cardSurface, useTheme } from '../theme';
 
@@ -11,6 +12,8 @@ const THEME_OPTIONS = [
   { value: 'dark' as ThemeMode, label: 'DARK' },
   { value: 'light' as ThemeMode, label: 'LIGHT' },
 ] as const;
+
+const REPO_URL = 'https://github.com/owaisazmal/monthly-planning';
 
 interface Props {
   account: Account | null;
@@ -34,8 +37,10 @@ export default function SettingsScreen({ account, onSignIn, onSignOut, onClose }
       { cancelable: true }
     );
 
+  // 'bottom' matters now that the colophon is pinned down there: without it the
+  // last line sits under Android's gesture pill.
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Text style={styles.title}>SETTINGS</Text>
@@ -120,6 +125,28 @@ export default function SettingsScreen({ account, onSignIn, onSignOut, onClose }
         </View>
 
         <Text style={styles.footer}>Your widgets follow this too.</Text>
+
+        <View style={styles.clipPanel}>
+          <ThemeBackdrop />
+        </View>
+
+        <View style={styles.colophon}>
+          <Text style={styles.madeBy}>
+            Made by Owais Khan. No team, no investors, and no analytics to tell
+            me whether anyone ever reads this line.
+          </Text>
+          <Pressable
+            hitSlop={10}
+            accessibilityRole="link"
+            onPress={() => Linking.openURL(REPO_URL)}
+            style={({ pressed }) => [styles.repo, pressed && { opacity: 0.6 }]}
+          >
+            <Text style={styles.repoText}>{REPO_URL.replace('https://', '')}</Text>
+          </Pressable>
+          <Text style={styles.madeBy}>
+            Every line of it is up there. Go on, check my work.
+          </Text>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -129,9 +156,10 @@ const makeStyles = (p: Palette) =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: 'transparent' },
     content: {
+      flexGrow: 1,
       paddingHorizontal: 16,
       paddingTop: 8,
-      paddingBottom: 48,
+      paddingBottom: 28,
     },
     header: {
       flexDirection: 'row',
@@ -166,6 +194,26 @@ const makeStyles = (p: Palette) =>
       ...cardSurface(p),
       padding: 16,
       marginBottom: 22,
+    },
+    /**
+     * Home for the theme clip, and the screen's slack. Taking the leftover
+     * space rather than a fixed ratio puts the colophon on the bottom edge on
+     * any screen without the page having to scroll to reach it — and the clip
+     * is drawn with `contain`, so a wide short panel shrinks the drawing
+     * instead of cropping it.
+     */
+    clipPanel: {
+      flex: 1,
+      minHeight: 96,
+      // Clearance for the clip's edge fades, which reach outside the panel —
+      // without it they wash over the caption and the colophon. Only iOS draws
+      // them, and on a short screen this margin is the difference between a
+      // drawing that fills the panel and one that looks like a stamp, so
+      // Android keeps its space instead of paying for a fade it never renders.
+      ...Platform.select({
+        ios: { marginTop: 50, marginBottom: 54 },
+        default: { marginTop: 10, marginBottom: 16 },
+      }),
     },
     identity: {
       flexDirection: 'row',
@@ -269,6 +317,27 @@ const makeStyles = (p: Palette) =>
       fontSize: 12,
       fontFamily: FONT.regular,
       color: p.inkSoft,
+    },
+    colophon: {
+      alignItems: 'center',
+      paddingHorizontal: 12,
+    },
+    madeBy: {
+      textAlign: 'center',
+      fontSize: 11,
+      lineHeight: 17,
+      fontFamily: FONT.regular,
+      color: p.inkSoft,
+      opacity: 0.75,
+    },
+    repo: {
+      marginVertical: 8,
+    },
+    repoText: {
+      fontSize: 12,
+      fontFamily: FONT.semibold,
+      color: p.accent,
+      textDecorationLine: 'underline',
     },
     footer: {
       textAlign: 'center',

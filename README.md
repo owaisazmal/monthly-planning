@@ -2,6 +2,29 @@
 
 A digital version of the whiteboard "Monthly Planning" board with a **radial habit tracker** — built with Expo / React Native for iOS and Android.
 
+## Open, and staying that way
+
+I built this for myself, and then put it somewhere anyone could take it.
+
+**Nothing you write here leaves your phone.** No analytics, no trackers, no
+crash reporters, no ad SDKs — the dependency list is short enough to read in a
+minute, and you are welcome to. Your habits, notes and goals live in local
+storage on the device and nowhere else. An account is optional and exists only
+so your history can follow you to a new phone; the app is fully usable without
+ever creating one.
+
+**The source stays public for as long as this app exists.** That is a promise
+about the licence, not just the current state of the repo — see [LICENSE](LICENSE).
+
+**If something here annoys you, change it.** Fork it, strip out the parts you
+don't want, build the version you would rather use. That is the entire point of
+it being open. You don't need permission and you don't need to ask.
+
+Credit is entirely optional and I would never dream of asking. It's just that
+"Owais Khan" fits very comfortably in a footer, costs you one line, and I will
+be refreshing the forks page regardless, serene, unbothered, definitely not
+counting.
+
 ## Features
 
 - **Radial habit tracker** — the circle is divided into one sector per day of the month and one ring per habit (innermost ring = habit 1). Tap a cell to cycle: pending → **done** (green) → **missed** (red) → pending. Today's date is highlighted.
@@ -11,7 +34,10 @@ A digital version of the whiteboard "Monthly Planning" board with a **radial hab
 - **Observations** — free-form note lines, add/remove as needed.
 - **Key Goals** — three goal boxes with a "mark done" toggle.
 - **Discipline quote** — rotates daily.
-- **Dark mode** — on by default, toggle with the ☀ / ☾ button. The choice persists.
+- **Dark mode** — on by default, switched in Settings. The choice persists, and the home-screen widgets follow it.
+- **Widgets** — seven of them on both platforms (radial, year, streak, today, goals, progress, daily quote), plus Lock Screen accessories on iOS.
+- **Reminders** — a few nudges a day, only while something is still unmarked, and a note when the day is done.
+- **Account** — optional, and only for carrying history to a new phone.
 - **Month navigation** — every month keeps its own habits, grid, observations, and goals, persisted on-device with AsyncStorage.
 
 ## Run it
@@ -36,16 +62,39 @@ npx eas build --platform all
 ## Structure
 
 ```
-App.tsx                        main screen: header, month nav, tracker, sections, persistence
+App.tsx                        root: persisted settings, account, font, theme provider
+
+src/theme.ts                   palettes, type scale, radii — the only place colour is defined
 src/types.ts                   data model (MonthData, Habit, cell states)
 src/storage.ts                 AsyncStorage load/save per month + year summary
+src/streaks.ts                 how consecutive days are counted
+src/auth.ts                    local account record (no password is ever stored)
+src/session.ts                 auth tokens, in Keychain / Keystore — not AsyncStorage
+src/onboarding.ts              whether the intro has been shown
 src/quotes.ts                  discipline quotes, one per day
-src/theme.ts                   dark/light palettes + theme context
-src/components/RadialTracker   the SVG radial chart
-src/components/YearChart       GitHub-style yearly contribution grid
-src/components/DailyCheck      per-day ✓ / ✗ checklist
-src/components/HabitsList      add/rename/remove habits
-src/components/Observations    note lines
-src/components/KeyGoals        three goal boxes
-src/components/SectionHeader   accent-bar section title
+src/notifications.ts           reminder schedule
+
+src/navigation/ScreenLayer     how a layer slides, recedes and swipes back
+src/navigation/Navigator       which screens exist and what sits under what
+
+src/screens/IntroScreen        four-page first run
+src/screens/AuthScreen         sign in / create account
+src/screens/ForgotPasswordScreen
+src/screens/SettingsScreen     account + appearance
+src/screens/PlannerScreen      the planner, layout and gestures only
+src/screens/plannerStyles      its stylesheet
+
+src/hooks/useMonthData         the open month and every way it changes
+src/hooks/useYearSummary       year load + live tally overlay
+src/hooks/useCurrentStreak     the header flame
+src/hooks/useOutboundSync      pushes to widgets and reminders
+
+src/components/                RadialTracker, YearChart, DailyCheck, HabitsList,
+                               Observations, KeyGoals, StreakBadge, MarkButton,
+                               SegmentedControl, AuroraBackground, …
+
+src/widgets/                   snapshot written to the shared container
+targets/widgets/               iOS WidgetKit (SwiftUI)
+targets/android-widgets/       Android home screen (Jetpack Glance)
+plugins/                       Expo config plugin for the Android widgets
 ```

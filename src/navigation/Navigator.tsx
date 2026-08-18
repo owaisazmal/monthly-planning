@@ -2,11 +2,12 @@ import { useState } from 'react';
 import PlannerScreen from '../screens/PlannerScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import AuthScreen from '../screens/AuthScreen';
+import IntroScreen from '../screens/IntroScreen';
 import { ScreenLayer, useScreenTransition } from './ScreenLayer';
 import { Account } from '../auth';
 import { ChartType } from '../storage';
 
-type Screen = 'planner' | 'settings' | 'auth';
+type Screen = 'planner' | 'settings' | 'auth' | 'intro';
 type AuthVariant = 'onboarding' | 'standalone';
 
 export default function Navigator({
@@ -17,6 +18,7 @@ export default function Navigator({
   onSignIn,
   onSignOut,
   onSkipOnboarding,
+  onIntroDone,
 }: {
   initialScreen: Exclude<Screen, 'settings'>;
   account: Account | null;
@@ -25,21 +27,32 @@ export default function Navigator({
   onSignIn: (account: Account) => void;
   onSignOut: () => void;
   onSkipOnboarding: () => void;
+  onIntroDone: () => void;
 }) {
   const [screen, setScreen] = useState<Screen>(initialScreen);
   // Frozen at the moment the auth screen opens rather than derived from the
   // account, which changes the instant someone signs in — mid-exit, that would
   // swap the screen's back button in behind the animation.
   const [authVariant, setAuthVariant] = useState<AuthVariant>(
-    initialScreen === 'auth' ? 'onboarding' : 'standalone'
+    initialScreen === 'planner' ? 'standalone' : 'onboarding'
   );
+
+  // The intro sits on top of the auth screen rather than in front of it: the
+  // welcome page is already built underneath, so finishing the intro lifts
+  // this away and lands on it, with nothing to construct mid-animation.
+  const introLayer = useScreenTransition(screen === 'intro');
+
+  const finishIntro = () => {
+    onIntroDone();
+    setScreen('auth');
+  };
 
   // Settings stays in the stack underneath a sign-in reached from it, so
   // dismissing that sign-in slides Settings back rather than rebuilding it.
   const settingsLayer = useScreenTransition(
     screen === 'settings' || (screen === 'auth' && authVariant === 'standalone')
   );
-  const authLayer = useScreenTransition(screen === 'auth');
+  const authLayer = useScreenTransition(screen === 'auth' || screen === 'intro');
 
   const dismissAuth = () => {
     if (authVariant === 'standalone') {
@@ -102,12 +115,29 @@ export default function Navigator({
         presentation={authVariant === 'onboarding' ? 'fade' : 'push'}
         swipeBackEnabled={authVariant === 'standalone'}
         onSwipeBack={dismissAuth}
+        // Screens are transparent so the drifting background reads through
+        // them — which also means a screen resting on top of this one would
+        // read through to it. Hidden only while the intro is fully open, so it
+        // is back in place the instant the intro starts to go.
+        hidden={introLayer.settledOpen}
       >
         <AuthScreen
           variant={authVariant}
           onAuthenticated={authenticated}
           onDismiss={dismissAuth}
         />
+      </ScreenLayer>
+
+      {/*
+        First thing a new install shows, and the only screen with nothing
+        behind it worth seeing — so it fades out rather than sliding aside.
+      */}
+      <ScreenLayer
+        transition={introLayer}
+        presentation="fade"
+        swipeBackEnabled={false}
+      >
+        <IntroScreen onDone={finishIntro} />
       </ScreenLayer>
     </>
   );

@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, TextInput, StyleSheet, Pressable } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import ObservationsBackdrop from './ObservationsBackdrop';
 import SectionHeader from './SectionHeader';
 import { useTheme, cardSurface, RADIUS, FONT } from '../theme';
 
@@ -102,8 +101,6 @@ export default function Observations({ observations, onChange, onAdd, onRemove }
 
   return (
     <View style={styles.card}>
-      {/* first child, so it sits under the header and the rows */}
-      <ObservationsBackdrop />
       <SectionHeader
         title="OBSERVATIONS"
         right={
