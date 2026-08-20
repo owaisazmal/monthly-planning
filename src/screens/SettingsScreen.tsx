@@ -144,7 +144,9 @@ export default function SettingsScreen({ account, onSignIn, onSignOut, onClose }
             <Text style={styles.repoText}>{REPO_URL.replace('https://', '')}</Text>
           </Pressable>
           <Text style={styles.madeBy}>
-            Every line of it is up there. Go on, check my work.
+            App is public, and staying that way.
+            No trackers, no data collection, nothing leaving this phone. There is
+            no server to send it to even if I wanted it.
           </Text>
         </View>
       </ScrollView>
