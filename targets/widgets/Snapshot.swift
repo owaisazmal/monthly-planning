@@ -205,22 +205,29 @@ struct SnapshotProvider: TimelineProvider {
 
   func getTimeline(in context: Context, completion: @escaping (Timeline<SnapshotEntry>) -> Void) {
     let loaded = SnapshotStore.load()
-    let entry = SnapshotEntry(
-      date: Date(),
-      snapshot: loaded ?? .placeholder,
-      isPlaceholder: loaded == nil
-    )
-    // The app reloads timelines whenever data changes, so this only has to
-    // cover what changes on its own: "today" rolling over at midnight, and a
-    // deadline crossing into its next urgency band. Whichever comes first.
+    let snapshot = loaded ?? .placeholder
     let now = Date()
+
+    // The app reloads timelines whenever the data changes, so a timeline only
+    // has to cover what moves on its own: "today" rolling over at midnight, and
+    // every countdown stepping down. Those are entries, not reloads — WidgetKit
+    // budgets how often an extension may be woken, but not how many entries it
+    // hands back when it is.
     let midnight =
       Calendar.current.nextDate(
         after: now,
         matching: DateComponents(hour: 0, minute: 1),
         matchingPolicy: .nextTime
       ) ?? now.addingTimeInterval(3600)
-    let next = Deadline.nextBoundary(after: now, in: entry.snapshot) ?? midnight
-    completion(Timeline(entries: [entry], policy: .after(min(midnight, next))))
+
+    var dates = [now]
+    dates += Deadline.labelChanges(after: now, in: snapshot, limit: 28)
+    dates.append(midnight)
+    dates = Array(Set(dates)).sorted()
+
+    let entries = dates.map {
+      SnapshotEntry(date: $0, snapshot: snapshot, isPlaceholder: loaded == nil)
+    }
+    completion(Timeline(entries: entries, policy: .after(dates.last ?? midnight)))
   }
 }

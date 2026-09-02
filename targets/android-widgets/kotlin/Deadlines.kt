@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /**
  * Mirrors src/deadlines.ts and the Deadline enum in the Swift widget. The app,
@@ -96,10 +97,13 @@ object Deadline {
         set(Calendar.MILLISECOND, 0)
       }.timeInMillis
     }
-    return when ((startOfDay(due) - startOfDay(now)) / DAY) {
-      0L -> "Today · $time"
-      1L -> "Tomorrow · $time"
-      -1L -> "Yesterday · $time"
+    // rounded, not truncated: the clocks going forward makes a day 23 hours
+    // long, and integer division would then call tomorrow "Today"
+    val days = ((startOfDay(due) - startOfDay(now)).toDouble() / DAY).roundToInt()
+    return when (days) {
+      0 -> "Today · $time"
+      1 -> "Tomorrow · $time"
+      -1 -> "Yesterday · $time"
       else -> "${SimpleDateFormat("EEE d MMM", Locale.getDefault()).format(Date(due))} · $time"
     }
   }

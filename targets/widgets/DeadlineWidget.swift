@@ -77,6 +77,27 @@ enum Deadline {
       .filter { $0 > moment }
       .min()
   }
+
+  /// Every moment one of the shown countdowns changes its wording, soonest
+  /// first.
+  ///
+  /// A widget that only reloaded at the urgency bands would sit on "5d left"
+  /// for two days before jumping to "3d left". Entries are cheap where reloads
+  /// are budgeted, so the timeline carries one per step instead: whole days out
+  /// while the label is in days, whole hours once it is in hours.
+  static func labelChanges(
+    after moment: Date,
+    in snapshot: PlannerSnapshot,
+    limit: Int
+  ) -> [Date] {
+    var moments: Set<Date> = []
+    for task in snapshot.deadlines.prefix(6) {
+      for k in 1...14 { moments.insert(task.date.addingTimeInterval(-Double(k) * day)) }
+      for k in 1...24 { moments.insert(task.date.addingTimeInterval(-Double(k) * hour)) }
+      moments.insert(task.date)
+    }
+    return Array(moments.filter { $0 > moment }.sorted().prefix(limit))
+  }
 }
 
 // MARK: - Deadlines

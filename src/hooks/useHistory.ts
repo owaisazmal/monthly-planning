@@ -51,10 +51,18 @@ export function useHistory(tasks: Task[], enabled: boolean, now: number) {
 
   const loadMore = useCallback(() => setSpan((s) => s + MORE_MONTHS), []);
 
-  /** Whether asking for more could plausibly return anything */
-  const oldest = records?.[records.length - 1];
+  /**
+   * Whether asking for more could plausibly return anything.
+   *
+   * Judged on the oldest batch rather than the single oldest month: one quiet
+   * month at the far end says nothing about the year behind it, and testing
+   * only that month would hide everything older the moment someone took a
+   * month off. A whole empty batch is a fair sign the trail has run out.
+   */
   const canLoadMore =
-    !!oldest && !loading && days.some((d) => d.year === oldest.year && d.month === oldest.month);
+    !loading &&
+    !!records?.length &&
+    records.slice(-MORE_MONTHS).some((r) => Object.keys(r.data.grid).length > 0);
 
   return { days, loading: loading && records === null, span, loadMore, canLoadMore };
 }

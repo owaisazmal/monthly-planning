@@ -76,9 +76,18 @@ export default function DueDatePicker({ visible, value, onCancel, onConfirm }: P
     setPicked(next);
   };
 
+  /**
+   * Hours and minutes wrap inside the chosen day rather than spilling out of
+   * it. The grid above owns the date: stepping the hour down from 00:00 used to
+   * roll back to the previous day, leaving the calendar highlighting one date
+   * while SET saved another — and across a month boundary, highlighting nothing
+   * at all.
+   */
   const shiftTime = (hours: number, minutes: number) => {
     const next = new Date(picked);
-    next.setHours(next.getHours() + hours, next.getMinutes() + minutes, 0, 0);
+    const total = (next.getHours() + hours) * 60 + next.getMinutes() + minutes;
+    const wrapped = ((total % 1440) + 1440) % 1440;
+    next.setHours(Math.floor(wrapped / 60), wrapped % 60, 0, 0);
     setPicked(next);
   };
 
@@ -101,6 +110,8 @@ export default function DueDatePicker({ visible, value, onCancel, onConfirm }: P
           <View style={styles.monthNav}>
             <Pressable
               hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel="Previous month"
               onPress={() => shiftMonth(-1)}
               style={({ pressed }) => [styles.navBtn, pressed && { opacity: 0.6 }]}
             >
@@ -111,6 +122,8 @@ export default function DueDatePicker({ visible, value, onCancel, onConfirm }: P
             </Text>
             <Pressable
               hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel="Next month"
               onPress={() => shiftMonth(1)}
               style={({ pressed }) => [styles.navBtn, pressed && { opacity: 0.6 }]}
             >
@@ -157,6 +170,7 @@ export default function DueDatePicker({ visible, value, onCancel, onConfirm }: P
             <Text style={styles.timeLabel}>TIME</Text>
             <Stepper
               styles={styles}
+              unit="hour"
               value={String(picked.getHours()).padStart(2, '0')}
               onDown={() => shiftTime(-1, 0)}
               onUp={() => shiftTime(1, 0)}
@@ -164,6 +178,7 @@ export default function DueDatePicker({ visible, value, onCancel, onConfirm }: P
             <Text style={styles.colon}>:</Text>
             <Stepper
               styles={styles}
+              unit="minute"
               value={String(picked.getMinutes()).padStart(2, '0')}
               onDown={() => shiftTime(0, -MINUTE_STEP)}
               onUp={() => shiftTime(0, MINUTE_STEP)}
@@ -192,11 +207,14 @@ export default function DueDatePicker({ visible, value, onCancel, onConfirm }: P
 
 function Stepper({
   styles,
+  unit,
   value,
   onDown,
   onUp,
 }: {
   styles: ReturnType<typeof makeStyles>;
+  /** named in the labels, since "−" on its own tells a screen reader nothing */
+  unit: string;
   value: string;
   onDown: () => void;
   onUp: () => void;
@@ -205,14 +223,23 @@ function Stepper({
     <View style={styles.stepper}>
       <Pressable
         hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={`Earlier ${unit}`}
         onPress={onDown}
         style={({ pressed }) => [styles.stepBtn, pressed && { opacity: 0.6 }]}
       >
         <Text style={styles.stepGlyph}>−</Text>
       </Pressable>
-      <Text style={styles.stepValue}>{value}</Text>
+      <Text
+        style={styles.stepValue}
+        accessibilityLabel={`${value} ${unit}${value === '01' ? '' : 's'}`}
+      >
+        {value}
+      </Text>
       <Pressable
         hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={`Later ${unit}`}
         onPress={onUp}
         style={({ pressed }) => [styles.stepBtn, pressed && { opacity: 0.6 }]}
       >
