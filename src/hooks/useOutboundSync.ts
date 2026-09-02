@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { MonthData } from '../types';
+import { Task } from '../tasks';
 import { YearMonthSummary } from '../storage';
 import { ThemeMode } from '../theme';
 import { buildSnapshot } from '../widgets/snapshot';
@@ -30,27 +31,36 @@ export function useWidgetSync(
   month: number,
   data: MonthData,
   yearMonths: YearMonthSummary[] | null,
-  mode: ThemeMode
+  mode: ThemeMode,
+  tasks: Task[]
 ) {
   useEffect(() => {
     if (!enabled || !yearMonths) return;
     const t = setTimeout(() => {
-      syncWidgets(buildSnapshot(year, month, data, yearMonths, new Date(), mode));
+      syncWidgets(buildSnapshot(year, month, data, yearMonths, new Date(), mode, tasks));
     }, DEBOUNCE_MS);
     return () => clearTimeout(t);
-  }, [enabled, data, year, month, yearMonths, mode]);
+  }, [enabled, data, year, month, yearMonths, mode, tasks]);
 }
 
 /**
  * Rewrite the reminder schedule on every change, so today's remaining nudges
  * disappear as soon as nothing is left pending.
+ *
+ * Habits and deadlines are rewritten together because the schedule is rebuilt
+ * from empty each time: scheduling either one alone would drop the other.
  */
-export function useReminderSync(enabled: boolean, data: MonthData, today: number | null) {
+export function useReminderSync(
+  enabled: boolean,
+  data: MonthData,
+  today: number | null,
+  tasks: Task[]
+) {
   useEffect(() => {
     if (!enabled) return;
     const t = setTimeout(() => {
-      syncReminders({ habits: data.habits, grid: data.grid, today, now: new Date() });
+      syncReminders({ habits: data.habits, grid: data.grid, today, tasks, now: new Date() });
     }, DEBOUNCE_MS);
     return () => clearTimeout(t);
-  }, [enabled, data, today]);
+  }, [enabled, data, today, tasks]);
 }

@@ -21,15 +21,21 @@ import DailyCheck from '../components/DailyCheck';
 import HabitsList from '../components/HabitsList';
 import Observations from '../components/Observations';
 import KeyGoals from '../components/KeyGoals';
+import Deadlines from '../components/Deadlines';
+import DueDatePicker from '../components/DueDatePicker';
 import SegmentedControl from '../components/SegmentedControl';
 import SettingsIcon from '../components/SettingsIcon';
+import HistoryIcon from '../components/HistoryIcon';
 import StreakBadge from '../components/StreakBadge';
 import { useMonthData } from '../hooks/useMonthData';
 import { useYearSummary } from '../hooks/useYearSummary';
 import { useCurrentStreak } from '../hooks/useCurrentStreak';
+import { TaskStore } from '../hooks/useTasks';
+import { useNow } from '../hooks/useNow';
 import { useWidgetSync, useReminderSync } from '../hooks/useOutboundSync';
 import { quoteForDate } from '../quotes';
 import { ChartType } from '../storage';
+import { HistoryFilter } from '../history';
 import { ThemeContext } from '../theme';
 import { makeStyles } from './plannerStyles';
 
@@ -54,10 +60,15 @@ export default function PlannerScreen({
   chart,
   onSetChart,
   onOpenSettings,
+  onOpenHistory,
+  taskStore,
 }: {
   chart: ChartType;
   onSetChart: (c: ChartType) => void;
   onOpenSettings: () => void;
+  onOpenHistory: (filter?: HistoryFilter) => void;
+  /** owned by the Navigator, because history reads the same list */
+  taskStore: TaskStore;
 }) {
   const { mode, palette } = useContext(ThemeContext);
   const now = new Date();
@@ -90,10 +101,28 @@ export default function PlannerScreen({
     removeObservation,
   } = useMonthData(year, month, today);
 
+  const {
+    tasks,
+    loaded: tasksLoaded,
+    addTask,
+    setTaskText,
+    setTaskDue,
+    toggleTaskDone,
+    removeTask,
+    findTask,
+  } = taskStore;
+  // which task's deadline is being edited, or null when the sheet is closed
+  const [editingDue, setEditingDue] = useState<string | null>(null);
+  // deadlines are the one thing here that ages without anyone touching it
+  const nowMs = useNow();
+
   const yearMonths = useYearSummary(year, month, data, daysInMonth);
   const streakDays = useCurrentStreak(year, yearMonths);
-  useWidgetSync(loaded, year, month, data, yearMonths, mode);
-  useReminderSync(loaded, data, today);
+  // Both, not just the month: pushing before the deadlines have loaded would
+  // put a snapshot on the home screen saying nothing is due, and only correct
+  // it on the next edit.
+  useWidgetSync(loaded && tasksLoaded, year, month, data, yearMonths, mode, tasks);
+  useReminderSync(loaded && tasksLoaded, data, today, tasks);
 
   // Opening a month lands on today when it's the current one, on the 1st
   // otherwise — unless a date was picked from the year grid on the way in.
@@ -241,6 +270,15 @@ export default function PlannerScreen({
             </View>
             <View style={styles.headerActions}>
               <StreakBadge days={streakDays} palette={palette} />
+              <Pressable
+                hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel="History"
+                onPress={() => onOpenHistory()}
+                style={({ pressed }) => [styles.themeBtn, pressed && { opacity: 0.6 }]}
+              >
+                <HistoryIcon color={palette.ink} />
+              </Pressable>
               <Pressable
                 hitSlop={10}
                 accessibilityRole="button"
@@ -412,6 +450,30 @@ export default function PlannerScreen({
             />
           </View>
 
+          {/* Deadlines */}
+          <View style={styles.section}>
+            <Deadlines
+              tasks={tasks}
+              now={nowMs}
+              onAdd={() => {
+                LayoutAnimation.configureNext(rowsAnimation);
+                addTask();
+              }}
+              onChangeText={setTaskText}
+              onEditDue={setEditingDue}
+              onToggleDone={(id) => {
+                // ticking one files it away into history, so the row leaves
+                LayoutAnimation.configureNext(rowsAnimation);
+                toggleTaskDone(id);
+              }}
+              onRemove={(id) => {
+                LayoutAnimation.configureNext(rowsAnimation);
+                removeTask(id);
+              }}
+              onShowHistory={() => onOpenHistory('deadlines')}
+            />
+          </View>
+
           {/* Habits */}
           <View style={styles.section}>
             <HabitsList
@@ -457,6 +519,16 @@ export default function PlannerScreen({
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <DueDatePicker
+        visible={editingDue !== null}
+        value={findTask(editingDue ?? '')?.due ?? Date.now()}
+        onCancel={() => setEditingDue(null)}
+        onConfirm={(due) => {
+          if (editingDue) setTaskDue(editingDue, due);
+          setEditingDue(null);
+        }}
+      />
     </SafeAreaView>
   );
 }

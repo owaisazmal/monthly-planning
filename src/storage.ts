@@ -58,6 +58,57 @@ export async function saveMonth(year: number, month: number, data: MonthData): P
   }
 }
 
+/** One stored month, with the year and month it came from */
+export interface MonthRecord {
+  year: number;
+  /** 0-based, matching the app */
+  month: number;
+  data: MonthData;
+}
+
+/**
+ * Full records for a run of months ending at (year, month), newest first.
+ *
+ * The year summary above is deliberately lossy — it counts marks without saying
+ * which habit they belonged to — which is all a grid needs and not enough for a
+ * log that names them. One multiGet either way, so reading whole months over a
+ * short window costs about the same as reading tallies over a long one.
+ */
+export async function loadMonthWindow(
+  year: number,
+  month: number,
+  count: number
+): Promise<MonthRecord[]> {
+  try {
+    const span = Array.from({ length: count }, (_, i) => {
+      const d = new Date(year, month - i, 1);
+      return { year: d.getFullYear(), month: d.getMonth() };
+    });
+    const pairs = await AsyncStorage.multiGet(span.map((s) => monthKey(s.year, s.month)));
+    return span.map((s, i) => {
+      const raw = pairs[i]?.[1];
+      if (!raw) return { ...s, data: emptyMonthData() };
+      try {
+        const parsed = JSON.parse(raw) as Partial<MonthData>;
+        const base = emptyMonthData();
+        return {
+          ...s,
+          data: {
+            habits: migrateHabits(parsed.habits),
+            grid: parsed.grid ?? base.grid,
+            observations: parsed.observations ?? base.observations,
+            keyGoals: parsed.keyGoals?.length === 3 ? parsed.keyGoals : base.keyGoals,
+          },
+        };
+      } catch {
+        return { ...s, data: emptyMonthData() };
+      }
+    });
+  } catch {
+    return [];
+  }
+}
+
 /** Per-day done/missed counts for one month, used by the yearly grid */
 export interface YearMonthSummary {
   habitCount: number;

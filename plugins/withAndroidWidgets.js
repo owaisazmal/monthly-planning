@@ -28,6 +28,7 @@ const WIDGETS = [
   ['TodayReceiver', 'widget_today'],
   ['GoalsReceiver', 'widget_goals'],
   ['QuoteReceiver', 'widget_quote'],
+  ['DeadlinesReceiver', 'widget_deadlines'],
 ];
 
 function copyDir(from, to) {

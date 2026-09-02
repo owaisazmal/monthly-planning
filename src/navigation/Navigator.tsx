@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import PlannerScreen from '../screens/PlannerScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import HistoryScreen from '../screens/HistoryScreen';
 import AuthScreen from '../screens/AuthScreen';
 import IntroScreen from '../screens/IntroScreen';
 import { ScreenLayer, useScreenTransition } from './ScreenLayer';
 import { Account } from '../auth';
+import { useTasks } from '../hooks/useTasks';
+import { HistoryFilter } from '../history';
 import { ChartType } from '../storage';
 
-type Screen = 'planner' | 'settings' | 'auth' | 'intro';
+type Screen = 'planner' | 'settings' | 'history' | 'auth' | 'intro';
 type AuthVariant = 'onboarding' | 'standalone';
 
 export default function Navigator({
@@ -20,7 +23,7 @@ export default function Navigator({
   onSkipOnboarding,
   onIntroDone,
 }: {
-  initialScreen: Exclude<Screen, 'settings'>;
+  initialScreen: Exclude<Screen, 'settings' | 'history'>;
   account: Account | null;
   chart: ChartType;
   onSetChart: (c: ChartType) => void;
@@ -30,6 +33,21 @@ export default function Navigator({
   onIntroDone: () => void;
 }) {
   const [screen, setScreen] = useState<Screen>(initialScreen);
+
+  /**
+   * Deadlines live here rather than in the planner because two screens need the
+   * same list: the planner edits it, history reads it back. Held above both so
+   * there is one copy, and so history never shows a task the planner has just
+   * changed but not yet written out.
+   */
+  const taskStore = useTasks();
+  // which tab history lands on, set by whoever opened it
+  const [historyFilter, setHistoryFilter] = useState<HistoryFilter>('all');
+
+  const openHistory = (filter: HistoryFilter = 'all') => {
+    setHistoryFilter(filter);
+    setScreen('history');
+  };
   // Frozen at the moment the auth screen opens rather than derived from the
   // account, which changes the instant someone signs in — mid-exit, that would
   // swap the screen's back button in behind the animation.
@@ -53,6 +71,7 @@ export default function Navigator({
     screen === 'settings' || (screen === 'auth' && authVariant === 'standalone')
   );
   const authLayer = useScreenTransition(screen === 'auth' || screen === 'intro');
+  const historyLayer = useScreenTransition(screen === 'history');
 
   const dismissAuth = () => {
     if (authVariant === 'standalone') {
@@ -80,12 +99,33 @@ export default function Navigator({
       */}
       <ScreenLayer
         coveredBy={settingsLayer.progress}
-        hidden={settingsLayer.settledOpen || authLayer.settledOpen}
+        hidden={
+          settingsLayer.settledOpen || authLayer.settledOpen || historyLayer.settledOpen
+        }
       >
         <PlannerScreen
           chart={chart}
           onSetChart={onSetChart}
           onOpenSettings={() => setScreen('settings')}
+          onOpenHistory={openHistory}
+          taskStore={taskStore}
+        />
+      </ScreenLayer>
+
+      {/*
+        History slides over the planner the way Settings does, and reads the
+        same task list the planner owns — the planner stays mounted underneath,
+        so coming back lands on the month that was already open.
+      */}
+      <ScreenLayer
+        transition={historyLayer}
+        onSwipeBack={() => setScreen('planner')}
+      >
+        <HistoryScreen
+          tasks={taskStore.tasks}
+          active={screen === 'history'}
+          initialFilter={historyFilter}
+          onClose={() => setScreen('planner')}
         />
       </ScreenLayer>
 

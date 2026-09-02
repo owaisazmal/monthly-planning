@@ -11,5 +11,6 @@ struct MonthlyPlanningWidgetBundle: WidgetBundle {
     TodayWidget()
     GoalsWidget()
     QuoteWidget()
+    DeadlineWidget()
   }
 }

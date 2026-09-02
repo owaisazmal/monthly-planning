@@ -13,6 +13,16 @@ struct PlannerSnapshot: Codable {
     let done: Bool
   }
 
+  struct Task: Codable {
+    let text: String
+    /// The deadline, epoch milliseconds — the app's clock, not a countdown.
+    /// Storing the moment rather than the distance to it is what lets the
+    /// widget stay accurate between snapshots.
+    let due: Double
+
+    var date: Date { Date(timeIntervalSince1970: due / 1000) }
+  }
+
   let updatedAt: Double
   /// The app's appearance setting — "dark" or "light". Optional because
   /// snapshots written before the widgets followed the app have no such key,
@@ -42,6 +52,15 @@ struct PlannerSnapshot: Codable {
   /// Decoded leniently — snapshots written before the quote widget existed
   /// have no `quotes` key, and a missing one shouldn't fail the whole decode.
   let quotes: [String]?
+  /// Likewise optional: a snapshot written before deadlines existed carries no
+  /// `tasks` key, and that must not fail the decode for every other widget.
+  let tasks: [Task]?
+
+  /// Unfinished deadlines, soonest first — overdue ones included, and first in
+  /// the list, since a deadline that has gone by is the one worth showing.
+  var deadlines: [Task] {
+    (tasks ?? []).sorted { $0.due < $1.due }
+  }
 
   /// Same day-of-year rotation as `quoteForDate` in src/quotes.ts, so the app
   /// and the widget always show the same quote on a given day.
@@ -135,6 +154,11 @@ struct PlannerSnapshot: Codable {
         "Discipline is choosing between what you want now and what you want most.",
         "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
         "You don't have to be extreme, just consistent.",
+      ],
+      tasks: [
+        .init(text: "Send the tax return", due: now.addingTimeInterval(5 * 3600).timeIntervalSince1970 * 1000),
+        .init(text: "Book the flights", due: now.addingTimeInterval(2 * 86400).timeIntervalSince1970 * 1000),
+        .init(text: "Finish the draft", due: now.addingTimeInterval(6 * 86400).timeIntervalSince1970 * 1000),
       ]
     )
   }()
@@ -186,14 +210,17 @@ struct SnapshotProvider: TimelineProvider {
       snapshot: loaded ?? .placeholder,
       isPlaceholder: loaded == nil
     )
-    // The app reloads timelines whenever data changes; this refresh only needs
-    // to roll "today" over at midnight.
+    // The app reloads timelines whenever data changes, so this only has to
+    // cover what changes on its own: "today" rolling over at midnight, and a
+    // deadline crossing into its next urgency band. Whichever comes first.
+    let now = Date()
     let midnight =
       Calendar.current.nextDate(
-        after: Date(),
+        after: now,
         matching: DateComponents(hour: 0, minute: 1),
         matchingPolicy: .nextTime
-      ) ?? Date().addingTimeInterval(3600)
-    completion(Timeline(entries: [entry], policy: .after(midnight)))
+      ) ?? now.addingTimeInterval(3600)
+    let next = Deadline.nextBoundary(after: now, in: entry.snapshot) ?? midnight
+    completion(Timeline(entries: [entry], policy: .after(min(midnight, next))))
   }
 }

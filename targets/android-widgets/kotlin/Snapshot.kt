@@ -13,6 +13,13 @@ data class Habit(val id: String, val name: String)
 
 data class Goal(val text: String, val done: Boolean)
 
+/**
+ * A task with a deadline. `due` is the moment itself in epoch milliseconds, not
+ * a distance to it — the widget works out how far off it is against its own
+ * clock, so the countdown stays true between snapshots.
+ */
+data class DeadlineTask(val text: String, val due: Long)
+
 data class PlannerSnapshot(
   /**
    * The app's appearance setting — "dark" or "light". Null for snapshots
@@ -40,6 +47,8 @@ data class PlannerSnapshot(
   val yearHabitCounts: List<Int>,
   val yearTotal: Int,
   val quotes: List<String>,
+  /** unfinished deadlines, soonest first — overdue ones included, and first */
+  val tasks: List<DeadlineTask>,
 ) {
   /** 0 pending, 1 done, 2 missed */
   fun state(day: Int, habitIndex: Int): Int {
@@ -90,6 +99,14 @@ data class PlannerSnapshot(
       val quotes = o.optJSONArray("quotes").let { arr ->
         (0 until (arr?.length() ?: 0)).map { arr!!.optString(it) }
       }
+      // absent from snapshots written before deadlines existed, which must
+      // still parse rather than taking every other widget down with them
+      val tasks = o.optJSONArray("tasks").let { arr ->
+        (0 until (arr?.length() ?: 0)).map {
+          val t = arr!!.getJSONObject(it)
+          DeadlineTask(t.optString("text"), t.optLong("due"))
+        }
+      }.sortedBy { it.due }
       return PlannerSnapshot(
         theme = if (o.isNull("theme")) null else o.optString("theme").ifEmpty { null },
         year = o.optInt("year"),
@@ -114,6 +131,7 @@ data class PlannerSnapshot(
         },
         yearTotal = o.optInt("yearTotal"),
         quotes = quotes,
+        tasks = tasks,
       )
     }
 
@@ -146,6 +164,11 @@ data class PlannerSnapshot(
       yearHabitCounts = List(12) { 4 },
       yearTotal = 318,
       quotes = listOf("Discipline is choosing between what you want now and what you want most."),
+      tasks = listOf(
+        DeadlineTask("Send the tax return", System.currentTimeMillis() + 5 * 3_600_000L),
+        DeadlineTask("Book the flights", System.currentTimeMillis() + 2 * 86_400_000L),
+        DeadlineTask("Finish the draft", System.currentTimeMillis() + 6 * 86_400_000L),
+      ),
     )
   }
 }

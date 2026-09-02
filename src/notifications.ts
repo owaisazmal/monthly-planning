@@ -1,6 +1,8 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { CellState, Habit, cellKey } from './types';
+import { Task } from './tasks';
+import { dueLabel, pendingTasks } from './deadlines';
 
 /**
  * Daily nudges for habits you haven't ticked off yet.
@@ -54,12 +56,119 @@ const CONGRATS = [
   'Done and dusted. Go and be insufferable about it.',
 ];
 
+const MINUTE = 60_000;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+
+const HABIT_CHANNEL = 'reminders';
+const DEADLINE_CHANNEL = 'deadlines';
+
+/**
+ * The run-up to a deadline, and what to say at each point.
+ *
+ * Getting louder as the date approaches is the whole feature, so the spacing
+ * tightens rather than staying even: three days, then one, then hours. Anything
+ * further out than three days is left alone — a reminder a fortnight ahead
+ * teaches you to swipe reminders away.
+ */
+const LEADS: { before: number; line: string }[] = [
+  { before: 3 * DAY, line: 'Three days out. Comfortable. Enjoy that while it lasts.' },
+  { before: DAY, line: 'One day left. This is the part where it stops being theoretical.' },
+  { before: 3 * HOUR, line: 'Three hours. No longer a tomorrow problem.' },
+  { before: HOUR, line: 'One hour. Whatever the plan was, this is it.' },
+  { before: 0, line: 'Deadline reached. How did that go?' },
+];
+
+const OVERDUE_LINE =
+  'Past due. It will not finish itself, and it is not going anywhere either.';
+
+/** Morning-after hour for the one nag an already-missed deadline gets */
+const OVERDUE_HOUR = 9;
+
+/**
+ * How many notifications the deadline reminders may claim.
+ *
+ * iOS keeps only the 64 soonest pending local notifications and silently drops
+ * everything past that, and the habit nudges above already hold up to 22. This
+ * cap stops a long task list from quietly evicting them — whatever else is on,
+ * a full week of habit reminders still fits.
+ */
+const DEADLINE_BUDGET = 28;
+
+/** Never let one very distant task spend the whole allowance on itself */
+const MAX_PER_TASK = 5;
+
+function titleFor(task: Task): string {
+  const text = task.text.trim();
+  if (!text) return 'Untitled task';
+  return text.length > 44 ? `${text.slice(0, 43)}…` : text;
+}
+
+/**
+ * Queues the run-up for every task with a deadline still ahead of it, soonest
+ * first, until the allowance runs out. Returns nothing — like the rest of this
+ * module it is best-effort, and a task that doesn't fit simply gets its
+ * reminders on the next sync, once the ones ahead of it have fired.
+ */
+async function scheduleDeadlines(tasks: Task[], now: Date): Promise<void> {
+  const nowMs = now.getTime();
+  let budget = DEADLINE_BUDGET;
+
+  for (const task of pendingTasks(tasks)) {
+    if (budget <= 0) return;
+
+    // Already missed: one nag the next morning, not a replay of the run-up.
+    if (task.due <= nowMs) {
+      const at = new Date(now);
+      at.setHours(OVERDUE_HOUR, 0, 0, 0);
+      if (at.getTime() <= nowMs) at.setDate(at.getDate() + 1);
+      await Notifications.scheduleNotificationAsync({
+        content: { title: titleFor(task), body: `${dueLabel(task.due, at.getTime())}. ${OVERDUE_LINE}` },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: at,
+          channelId: DEADLINE_CHANNEL,
+        },
+      });
+      budget--;
+      continue;
+    }
+
+    let used = 0;
+    for (const lead of LEADS) {
+      if (budget <= 0 || used >= MAX_PER_TASK) break;
+      const at = new Date(task.due - lead.before);
+      if (at.getTime() <= nowMs) continue; // that moment has already gone by
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: titleFor(task),
+          body: `Due ${dueLabel(task.due, at.getTime())}. ${lead.line}`,
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: at,
+          channelId: DEADLINE_CHANNEL,
+        },
+      });
+      budget--;
+      used++;
+    }
+  }
+}
+
 export async function ensurePermission(): Promise<boolean> {
   try {
     if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('reminders', {
+      await Notifications.setNotificationChannelAsync(HABIT_CHANNEL, {
         name: 'Habit reminders',
         importance: Notifications.AndroidImportance.DEFAULT,
+      });
+      // Its own channel, and a louder one: a deadline is a thing with a
+      // consequence, and Android lets someone mute the daily nagging without
+      // also muting the reminder that something is due in an hour.
+      await Notifications.setNotificationChannelAsync(DEADLINE_CHANNEL, {
+        name: 'Deadlines',
+        importance: Notifications.AndroidImportance.HIGH,
       });
     }
     const current = await Notifications.getPermissionsAsync();
@@ -92,13 +201,19 @@ export async function syncReminders(opts: {
   grid: Record<string, CellState>;
   /** current day-of-month, or null when the open month isn't the live one */
   today: number | null;
+  /** tasks with deadlines — not month-scoped, so they survive browsing */
+  tasks: Task[];
   now: Date;
 }): Promise<void> {
-  const { habits, grid, today, now } = opts;
+  const { habits, grid, today, tasks, now } = opts;
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
-    if (habits.length === 0) return;
+    // Nothing to say at all — don't provoke the permission prompt for it.
+    if (habits.length === 0 && pendingTasks(tasks).length === 0) return;
     if (!(await ensurePermission())) return;
+
+    await scheduleDeadlines(tasks, now);
+    if (habits.length === 0) return;
 
     // Only the live month tells us anything about what's pending right now.
     const pendingToday = today !== null ? pendingCount(habits, grid, today) : habits.length;
@@ -120,6 +235,7 @@ export async function syncReminders(opts: {
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
             date: nextSlot,
+            channelId: HABIT_CHANNEL,
           },
         });
       }
@@ -144,6 +260,7 @@ export async function syncReminders(opts: {
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
             date: when,
+            channelId: HABIT_CHANNEL,
           },
         });
       }

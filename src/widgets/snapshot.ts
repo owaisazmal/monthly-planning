@@ -3,6 +3,8 @@ import { YearMonthSummary } from '../storage';
 import { ThemeMode } from '../theme';
 import { DISCIPLINE_QUOTES } from '../quotes';
 import { computeStreaks } from '../streaks';
+import { Task } from '../tasks';
+import { pendingTasks } from '../deadlines';
 
 /**
  * The payload handed to the iOS widgets.
@@ -16,6 +18,15 @@ export interface WidgetHabit {
   id: string;
   name: string;
 }
+
+export interface WidgetTask {
+  text: string;
+  /** the deadline, epoch milliseconds */
+  due: number;
+}
+
+/** More than any widget family can show, and few enough to stay cheap to encode */
+const MAX_WIDGET_TASKS = 8;
 
 export interface WidgetSnapshot {
   updatedAt: number;
@@ -55,6 +66,16 @@ export interface WidgetSnapshot {
    * and `quotes.ts` stays the single source of truth.
    */
   quotes: string[];
+  /**
+   * Deadlines still to hit, soonest first.
+   *
+   * Only the deadline itself travels, never how far off it is: the widget works
+   * that out against its own clock, so "3h left" stays true between snapshots
+   * instead of ageing into a lie the moment the app is closed. Finished tasks
+   * are left behind — a widget has nothing to say about them — and the list is
+   * capped, because this whole payload is rewritten on every debounced save.
+   */
+  tasks: WidgetTask[];
 }
 
 const MONTH_NAMES = [
@@ -89,7 +110,8 @@ export function buildSnapshot(
   data: MonthData,
   yearMonths: YearMonthSummary[],
   now: Date,
-  theme: ThemeMode
+  theme: ThemeMode,
+  tasks: Task[]
 ): WidgetSnapshot {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
@@ -150,5 +172,8 @@ export function buildSnapshot(
     yearHabitCounts,
     yearTotal,
     quotes: DISCIPLINE_QUOTES,
+    tasks: pendingTasks(tasks)
+      .slice(0, MAX_WIDGET_TASKS)
+      .map((t) => ({ text: t.text.trim(), due: t.due })),
   };
 }
