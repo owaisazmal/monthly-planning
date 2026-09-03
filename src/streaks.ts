@@ -1,4 +1,4 @@
-import { YearMonthSummary } from './storage';
+import type { YearMonthSummary } from './storage';
 
 /**
  * How consecutive days are counted.

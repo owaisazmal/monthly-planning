@@ -1,6 +1,7 @@
-import { CellState, Habit, cellKey } from './types';
-import { MonthRecord } from './storage';
-import { Task } from './tasks';
+import { cellKey } from './types';
+import type { CellState, Habit } from './types';
+import type { MonthRecord } from './storage';
+import type { Task } from './tasks';
 
 /**
  * What actually happened, day by day.

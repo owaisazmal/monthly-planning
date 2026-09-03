@@ -1,0 +1,18 @@
+/**
+ * Tests cover the pure logic only: streaks, deadlines, history, and the task
+ * store's parsing. None of it renders, so this runs in plain Node rather than a
+ * React Native environment — faster, and it keeps the suite honest about what it
+ * actually exercises.
+ */
+module.exports = {
+  testEnvironment: 'node',
+  testMatch: ['<rootDir>/src/**/__tests__/**/*.test.ts'],
+  clearMocks: true,
+  // generated native projects and the scratch worktrees each carry their own
+  // package.json, which Jest would otherwise treat as a duplicate of this one
+  modulePathIgnorePatterns: [
+    '<rootDir>/ios/',
+    '<rootDir>/android/',
+    '<rootDir>/.claude/',
+  ],
+};

@@ -1,4 +1,4 @@
-import { Task } from './tasks';
+import type { Task } from './tasks';
 
 /**
  * How close a deadline is, and how that should read.

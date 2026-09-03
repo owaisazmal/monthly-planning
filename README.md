@@ -61,6 +61,23 @@ npx expo start
 - **Android emulator**: `npx expo start --android`
 - **iOS simulator** (needs Xcode): `npx expo start --ios`
 
+## Test it
+
+```bash
+npm test
+```
+
+Covers the pure logic — how streaks are counted, how close a deadline is, what
+history says happened, and what the task store will accept off disk. None of it
+renders, so the suite runs in plain Node in well under a second.
+
+That is a deliberate line. These four modules hold the parts that are easy to
+get quietly wrong — a run of days crossing a month border, a deadline landing
+exactly on an urgency boundary, a day that is 23 hours long because the clocks
+went forward, a stored record from an older version of the app. The screens are
+checked by looking at them; this is for the arithmetic underneath, which looks
+the same whether or not it is right.
+
 ## Ship it
 
 To produce store-ready binaries, use [EAS Build](https://docs.expo.dev/build/setup/):
@@ -111,6 +128,8 @@ src/hooks/useTasks             the deadline list and every way it changes
 src/hooks/useHistory           the history window, and paging further back
 src/hooks/useNow               a coarse clock, for the things that age on their own
 src/hooks/useOutboundSync      pushes to widgets and reminders
+
+src/__tests__/                 the pure logic: streaks, deadlines, history, tasks
 
 src/components/                RadialTracker, YearChart, DailyCheck, HabitsList,
                                Observations, KeyGoals, Deadlines, DueDatePicker,
