@@ -9,6 +9,8 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.owaiskhan.monthlyplanning",
+      "appleTeamId": "8A3Z824TH3",
+      "buildNumber": "1",
       "entitlements": {
         "com.apple.security.application-groups": [
           "group.com.owaiskhan.monthlyplanning"
@@ -17,6 +19,7 @@
     },
     "android": {
       "package": "com.owaiskhan.monthlyplanning",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

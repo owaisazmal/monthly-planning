@@ -66,8 +66,14 @@ npx expo start
 To produce store-ready binaries, use [EAS Build](https://docs.expo.dev/build/setup/):
 
 ```bash
-npx eas build --platform all
+npx eas build --platform all --profile production
 ```
+
+`eas.json` carries three profiles: `development` (debug, iOS simulator and an
+Android APK), `preview` (internal distribution for putting a real build on a
+real device), and `production` (App Store / Play Store, an Android app bundle,
+with the build number incremented for you). Version numbers live in `app.json`
+rather than on Expo's servers, so what ships is whatever the repo says.
 
 ## Structure
 
