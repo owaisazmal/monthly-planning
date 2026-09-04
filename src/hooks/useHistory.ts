@@ -27,12 +27,14 @@ export function useHistory(tasks: Task[], enabled: boolean, now: number) {
     if (!enabled) return;
     let cancelled = false;
     setLoading(true);
+
     const today = new Date();
     loadMonthWindow(today.getFullYear(), today.getMonth(), span).then((loaded) => {
       if (cancelled) return;
       setRecords(loaded);
       setLoading(false);
     });
+
     return () => {
       cancelled = true;
     };
@@ -64,5 +66,21 @@ export function useHistory(tasks: Task[], enabled: boolean, now: number) {
     !!records?.length &&
     records.slice(-MORE_MONTHS).some((r) => Object.keys(r.data.grid).length > 0);
 
-  return { days, loading: loading && records === null, span, loadMore, canLoadMore };
+  return {
+    days,
+    /**
+     * Nothing to show yet, whether or not a read is actually in flight.
+     *
+     * Derived from the absence of records rather than from the request, so the
+     * screen shows the spinner from its first frame — the entrance plays before
+     * the read is even allowed to start, and an "it is empty" message during
+     * those few hundred milliseconds would be a lie.
+     */
+    loading: records === null,
+    /** a later read, with the previous page still in place underneath */
+    loadingMore: loading && records !== null,
+    span,
+    loadMore,
+    canLoadMore,
+  };
 }

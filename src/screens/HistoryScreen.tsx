@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SectionHeader from '../components/SectionHeader';
 import SegmentedControl from '../components/SegmentedControl';
+import Spinner, { LoadingBlock } from '../components/Spinner';
 import { Task } from '../tasks';
 import {
   HistoryDay,
@@ -54,13 +55,26 @@ export default function HistoryScreen({ tasks, active, initialFilter, onClose }:
 
   // A minute is plenty: the only thing that moves here is "TODAY" rolling over.
   const now = useNow(60_000);
-  const { days, loading, loadMore, canLoadMore } = useHistory(tasks, active, now);
+  const { days, loading, loadingMore, loadMore, canLoadMore } = useHistory(tasks, active, now);
 
   const shown = useMemo(() => filterHistory(days, filter), [days, filter]);
   const totals = useMemo(() => historyTotals(shown), [shown]);
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
+    /**
+     * Opaque while there is nothing to show, transparent once there is.
+     *
+     * Screens are see-through so the drifting background reads through them,
+     * which works because their cards cover the planner as they slide over it.
+     * A screen holding only a spinner covers nothing, so the tracker underneath
+     * showed straight through the entrance. Giving it a ground for exactly as
+     * long as it is empty costs the background a few hundred milliseconds and
+     * fixes it.
+     */
+    <SafeAreaView
+      style={[styles.safe, loading && { backgroundColor: palette.bg }]}
+      edges={['top', 'left', 'right', 'bottom']}
+    >
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Text style={styles.title}>HISTORY</Text>
@@ -103,7 +117,7 @@ export default function HistoryScreen({ tasks, active, initialFilter, onClose }:
         )}
 
         {loading ? (
-          <Text style={styles.empty}>Reading the last few months…</Text>
+          <LoadingBlock label="Reading the last few months…" />
         ) : shown.length === 0 ? (
           <Text style={styles.empty}>
             Nothing here yet. Tick a habit off or finish something with a deadline
@@ -117,12 +131,20 @@ export default function HistoryScreen({ tasks, active, initialFilter, onClose }:
           </View>
         )}
 
-        {canLoadMore && (
+        {(canLoadMore || loadingMore) && (
           <Pressable
+            disabled={loadingMore}
+            accessibilityRole="button"
+            accessibilityLabel="Load older history"
+            accessibilityState={{ busy: loadingMore }}
             onPress={loadMore}
             style={({ pressed }) => [styles.moreBtn, pressed && { opacity: 0.7 }]}
           >
-            <Text style={styles.moreText}>OLDER</Text>
+            {loadingMore ? (
+              <Spinner size={18} />
+            ) : (
+              <Text style={styles.moreText}>OLDER</Text>
+            )}
           </Pressable>
         )}
       </ScrollView>

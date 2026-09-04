@@ -123,7 +123,13 @@ export default function Navigator({
       >
         <HistoryScreen
           tasks={taskStore.tasks}
-          active={screen === 'history'}
+          // Not "is it open" but "has it finished arriving". Reading storage is
+          // the heaviest thing this screen does, and the flag that hides the
+          // planner underneath is set by the entrance animation's callback — on
+          // the JS thread, behind whatever else is queued. Starting the read
+          // first delayed that callback, leaving the planner drawn underneath a
+          // screen with nothing on it yet, showing straight through.
+          active={historyLayer.settledOpen}
           initialFilter={historyFilter}
           onClose={() => setScreen('planner')}
         />

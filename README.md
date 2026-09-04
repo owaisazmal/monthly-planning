@@ -7,7 +7,7 @@
 
 # Monthly Planning
 
-A digital version of the whiteboard "Monthly Planning" board with a **radial habit tracker** — built with Expo / React Native for iOS and Android.
+A digital version of the whiteboard "Monthly Planning" board with a **radial habit tracker**, built with Expo / React Native for iOS and Android.
 
 | Planner | Year grid | Daily check | Widgets |
 | :-: | :-: | :-: | :-: |
@@ -22,14 +22,14 @@ platforms is in [`screenshot-widgets/`](screenshot-widgets/).
 I built this for myself, and then put it somewhere anyone could take it.
 
 **Nothing you write here leaves your phone.** No analytics, no trackers, no
-crash reporters, no ad SDKs — the dependency list is short enough to read in a
+crash reporters, no ad SDKs. The dependency list is short enough to read in a
 minute, and you are welcome to. Your habits, notes and goals live in local
 storage on the device and nowhere else. An account is optional and exists only
 so your history can follow you to a new phone; the app is fully usable without
 ever creating one.
 
 **The source stays public for as long as this app exists.** That is a promise
-about the licence, not just the current state of the repo — see [LICENSE](LICENSE).
+about the licence, not just the current state of the repo. See [LICENSE](LICENSE).
 
 **If something here annoys you, change it.** Fork it, strip out the parts you
 don't want, build the version you would rather use. That is the entire point of
@@ -42,20 +42,20 @@ counting.
 
 ## Features
 
-- **Radial habit tracker** — the circle is divided into one sector per day of the month and one ring per habit (innermost ring = habit 1). Tap a cell to cycle: pending → **done** (green) → **missed** (red) → pending. Today's date is highlighted.
-- **Yearly grid** — switch the tracker to a GitHub-style contribution graph of the whole year. Cell intensity reflects how many habits you completed that day; tap any cell to jump to that month and day. Auto-scrolls to the open month.
-- **Daily check** — a per-day checklist with ✓ / ✗ buttons, so filling the chart is one tap per habit. Navigate days with the arrows; today is badged.
-- **Habits** — add, rename, and remove up to 10 habits per month. Removing a habit with marks asks for confirmation.
-- **Deadlines** — tasks with a date and time on them, below the daily check. Each row shows how long is left, and a bar that fills over the final week, so the pressure is visible between the colour bands as well as through them. Reminders escalate as the date approaches: three days out, one day, three hours, one hour, and at the deadline itself, with one nag the morning after a missed one. They live on their own Android notification channel, so the daily habit nudges can be muted without losing them. Ticking one off files it away: the section lists only what is still outstanding, with a count of the finished ones and a link straight through to history. The widgets and the reminders ignore finished tasks too — a deadline you have met is not a deadline any more.
-- **History** — a read-only log of what actually happened, newest first: which habits were ticked or missed each day, and which deadlines were finished on time or late. Filter by habits or deadlines, and page further back six months at a time. Derived from the months and tasks already stored, so there is no second copy to fall out of step.
-- **Observations** — free-form note lines, add/remove as needed.
-- **Key Goals** — three goal boxes with a "mark done" toggle.
-- **Discipline quote** — rotates daily.
-- **Dark mode** — on by default, switched in Settings. The choice persists, and the home-screen widgets follow it.
-- **Widgets** — eight of them on both platforms (radial, year, streak, today, goals, progress, daily quote, deadlines), plus Lock Screen accessories on iOS.
-- **Reminders** — a few nudges a day, only while something is still unmarked, and a note when the day is done. Habit nudges and deadline reminders are rewritten together, within a budget, because iOS keeps only the 64 soonest pending local notifications.
-- **Account** — optional, and only for carrying history to a new phone.
-- **Month navigation** — every month keeps its own habits, grid, observations, and goals, persisted on-device with AsyncStorage.
+- **Radial habit tracker**: the circle is divided into one sector per day of the month and one ring per habit (innermost ring = habit 1). Tap a cell to cycle: pending → **done** (green) → **missed** (red) → pending. Today's date is highlighted.
+- **Yearly grid**: switch the tracker to a GitHub-style contribution graph of the whole year. Cell intensity reflects how many habits you completed that day; tap any cell to jump to that month and day. Auto-scrolls to the open month.
+- **Daily check**: a per-day checklist with ✓ / ✗ buttons, so filling the chart is one tap per habit. Navigate days with the arrows; today is badged.
+- **Habits**: add, rename, and remove up to 10 habits per month. Removing a habit with marks asks for confirmation.
+- **Deadlines**: tasks with a date and time on them, below the daily check. Each row shows how long is left, and a bar that fills over the final week, so the pressure is visible between the colour bands as well as through them. Reminders escalate as the date approaches: three days out, one day, three hours, one hour, and at the deadline itself, with one nag the morning after a missed one. They live on their own Android notification channel, so the daily habit nudges can be muted without losing them. Ticking one off files it away: the section lists only what is still outstanding, with a count of the finished ones and a link straight through to history. The widgets and the reminders ignore finished tasks too, because a deadline you have met is not a deadline any more.
+- **History**: a read-only log of what actually happened, newest first. It shows which habits were ticked or missed each day, and which deadlines were finished on time or late. Filter by habits or deadlines, and page further back six months at a time. Derived from the months and tasks already stored, so there is no second copy to fall out of step.
+- **Observations**: free-form note lines, add/remove as needed.
+- **Key Goals**: three goal boxes with a "mark done" toggle.
+- **Discipline quote**: rotates daily.
+- **Dark mode**: on by default, switched in Settings. The choice persists, and the home-screen widgets follow it.
+- **Widgets**: eight of them on both platforms (radial, year, streak, today, goals, progress, daily quote, deadlines), plus Lock Screen accessories on iOS.
+- **Reminders**: a few nudges a day, only while something is still unmarked, and a note when the day is done. Habit nudges and deadline reminders are rewritten together, within a budget, because iOS keeps only the 64 soonest pending local notifications.
+- **Account**: optional, and only for carrying history to a new phone.
+- **Month navigation**: every month keeps its own habits, grid, observations, and goals, persisted on-device with AsyncStorage.
 
 ## Run it
 
@@ -74,12 +74,12 @@ npx expo start
 npm test
 ```
 
-Covers the pure logic — how streaks are counted, how close a deadline is, what
+Covers the pure logic: how streaks are counted, how close a deadline is, what
 history says happened, and what the task store will accept off disk. None of it
 renders, so the suite runs in plain Node in well under a second.
 
 That is a deliberate line. These four modules hold the parts that are easy to
-get quietly wrong — a run of days crossing a month border, a deadline landing
+get quietly wrong: a run of days crossing a month border, a deadline landing
 exactly on an urgency boundary, a day that is 23 hours long because the clocks
 went forward, a stored record from an older version of the app. The screens are
 checked by looking at them; this is for the arithmetic underneath, which looks
@@ -104,15 +104,15 @@ rather than on Expo's servers, so what ships is whatever the repo says.
 ```
 App.tsx                        root: persisted settings, account, font, theme provider
 
-src/theme.ts                   palettes, type scale, radii — the only place colour is defined
+src/theme.ts                   palettes, type scale, radii (the only place colour is defined)
 src/types.ts                   data model (MonthData, Habit, cell states)
 src/storage.ts                 AsyncStorage load/save per month + year summary
-src/tasks.ts                   deadlines — kept outside MonthData, since a date isn't a month
+src/tasks.ts                   deadlines, kept outside MonthData since a date isn't a month
 src/deadlines.ts               how close a deadline is, and how that should read
 src/history.ts                 the day-by-day log, derived from months and tasks
 src/streaks.ts                 how consecutive days are counted
 src/auth.ts                    local account record (no password is ever stored)
-src/session.ts                 auth tokens, in Keychain / Keystore — not AsyncStorage
+src/session.ts                 auth tokens, in Keychain / Keystore rather than AsyncStorage
 src/onboarding.ts              whether the intro has been shown
 src/quotes.ts                  discipline quotes, one per day
 src/notifications.ts           reminder schedule
