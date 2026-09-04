@@ -27,12 +27,19 @@ export const makeStyles = (p: Palette) =>
       marginBottom: 18,
       paddingHorizontal: 4,
     },
+    brand: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 2,
+    },
     headerSub: {
       fontSize: 11,
       fontFamily: FONT.bold,
       letterSpacing: 4,
       color: p.accent,
-      marginBottom: 2,
+      // Josefin sits high in its box; nudge the caps onto the mark's centreline
+      marginTop: 3,
     },
     headerTitle: {
       fontSize: 30,

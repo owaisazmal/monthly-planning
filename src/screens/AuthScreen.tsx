@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BackButton from '../components/BackButton';
+import LogoMark from '../components/LogoMark';
 import SegmentedControl from '../components/SegmentedControl';
 import ForgotPasswordScreen from './ForgotPasswordScreen';
 // straight to the module, not the barrel: the barrel also pulls in Navigator,
@@ -133,6 +134,9 @@ export default function AuthScreen({ variant, onAuthenticated, onDismiss }: Prop
               showsVerticalScrollIndicator={false}
             >
               <View style={styles.brand}>
+                <View style={styles.brandMark}>
+                  <LogoMark size={76} />
+                </View>
                 <Text style={styles.brandSub}>MONTHLY</Text>
                 <Text style={styles.brandTitle}>PLANNING</Text>
                 <Text style={styles.tagline}>
@@ -293,6 +297,9 @@ const makeStyles = (p: Palette) =>
     brand: {
       alignItems: 'center',
       marginBottom: 22,
+    },
+    brandMark: {
+      marginBottom: 14,
     },
     brandSub: {
       fontSize: 11,

@@ -15,13 +15,18 @@
         "com.apple.security.application-groups": [
           "group.com.owaiskhan.monthlyplanning"
         ]
+      },
+      "icon": {
+        "light": "./assets/icon-ios-light.png",
+        "dark": "./assets/icon-ios-dark.png",
+        "tinted": "./assets/icon-ios-tinted.png"
       }
     },
     "android": {
       "package": "com.owaiskhan.monthlyplanning",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#242424",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"

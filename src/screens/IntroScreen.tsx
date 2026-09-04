@@ -11,6 +11,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LogoMark from '../components/LogoMark';
 import { FONT, Palette, RADIUS, useTheme } from '../theme';
 import { FadingStreak, MarkAndFlame, OpenSource, ThinkingClip } from './introArt';
 
@@ -87,6 +88,7 @@ export default function IntroScreen({ onDone }: { onDone: () => void }) {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
       <View style={styles.topBar}>
+        <LogoMark size={30} />
         <Pressable
           hitSlop={12}
           onPress={onDone}
@@ -173,8 +175,9 @@ const makeStyles = (p: Palette) =>
     flex: { flex: 1 },
     topBar: {
       height: 44,
-      alignItems: 'flex-end',
-      justifyContent: 'center',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
       paddingHorizontal: 20,
       marginTop: 4,
     },

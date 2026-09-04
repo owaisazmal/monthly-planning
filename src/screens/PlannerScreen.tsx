@@ -26,6 +26,7 @@ import DueDatePicker from '../components/DueDatePicker';
 import SegmentedControl from '../components/SegmentedControl';
 import SettingsIcon from '../components/SettingsIcon';
 import HistoryIcon from '../components/HistoryIcon';
+import LogoMark from '../components/LogoMark';
 import StreakBadge from '../components/StreakBadge';
 import { useMonthData } from '../hooks/useMonthData';
 import { useYearSummary } from '../hooks/useYearSummary';
@@ -264,8 +265,17 @@ export default function PlannerScreen({
         >
           {/* Header */}
           <View style={styles.header}>
+            {/*
+              The mark shares the eyebrow line rather than sitting beside the
+              whole wordmark: PLANNING at full size plus the three actions
+              already fills a 400pt screen, so anything to its left would push
+              the settings button off the edge.
+            */}
             <View>
-              <Text style={styles.headerSub}>MONTHLY</Text>
+              <View style={styles.brand}>
+                <LogoMark size={28} />
+                <Text style={styles.headerSub}>MONTHLY</Text>
+              </View>
               <Text style={styles.headerTitle}>PLANNING</Text>
             </View>
             <View style={styles.headerActions}>

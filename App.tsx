@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AuroraBackground from './src/components/AuroraBackground';
+import LaunchIntro from './src/components/LaunchIntro';
 import { Navigator } from './src/navigation';
 import { AuthState, loadAuth, saveAuth } from './src/auth';
 import { loadIntroSeen, saveIntroSeen } from './src/onboarding';
@@ -93,6 +94,8 @@ export default function App() {
             onSkipOnboarding={() => setAuth({ account: null, onboarded: true })}
             onIntroDone={saveIntroSeen}
           />
+          {/* Drawn over the finished app on cold start, then lifts away and unmounts */}
+          <LaunchIntro />
         </View>
       </ThemeContext.Provider>
     </SafeAreaProvider>

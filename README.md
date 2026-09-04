@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo/logo-dark.svg">
+    <img alt="Monthly Planning" src="assets/logo/logo-light.svg" width="440">
+  </picture>
+</p>
+
 # Monthly Planning
 
 A digital version of the whiteboard "Monthly Planning" board with a **radial habit tracker** — built with Expo / React Native for iOS and Android.
