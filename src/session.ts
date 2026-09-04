@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 
 /**
- * Where an auth session token lives.
+ * Where the auth session lives.
  *
  * Deliberately not AsyncStorage. AsyncStorage is plaintext on disk — a SQLite
  * row on Android, a file in the app container on iOS — readable from any debug
@@ -11,43 +11,136 @@ import * as SecureStore from 'expo-secure-store';
  * account.
  *
  * SecureStore puts the value in the iOS Keychain and the Android Keystore
- * instead, so it is encrypted at rest and tied to this app.
+ * instead, so it is encrypted at rest and tied to this app. `THIS_DEVICE_ONLY`
+ * keeps it out of backups too: a restored phone starts signed out.
  *
- * Nothing calls this yet — there is no backend. It exists so that when one
- * arrives, the token has an obvious right place to go and no reason to end up
- * beside the rest of the app's storage. Whatever client is used (Supabase takes
- * a custom storage adapter; Firebase has its own persistence hook) should be
- * pointed here.
+ * What is exposed is a storage adapter rather than a token, because that is
+ * what both candidate backends ask for and neither stores a bare token.
+ * Supabase takes this object as `auth.storage`; Firebase takes it as the
+ * argument to `getReactNativePersistence`. Either way the value written is a
+ * JSON blob — access token, refresh token, the user record — which runs to
+ * several kilobytes, and SecureStore documents a 2 KB ceiling per entry. So a
+ * value is split across as many entries as it needs and reassembled on read;
+ * the caller never sees the seams. Writes are not atomic across those entries,
+ * so whichever client is used should be given its own lock (Supabase:
+ * `lock: processLock`) rather than being allowed to write concurrently.
  *
- * Needs a native rebuild before first use — SecureStore ships native code, so
- * the currently installed dev builds don't have it yet.
+ * Nothing calls this yet — there is no backend. Needs a native rebuild before
+ * first use, since SecureStore ships native code.
  */
 
-const TOKEN_KEY = 'monthly-planning.session';
+const PREFIX = 'monthly-planning.session';
 
-/** Values are capped at 2048 bytes; a JWT is well under, a blob of state is not */
-export async function saveToken(token: string): Promise<void> {
-  await SecureStore.setItemAsync(TOKEN_KEY, token, {
-    keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
-  });
+/**
+ * Characters per entry. Comfortably inside the documented ceiling even if
+ * every character were a three-byte one — which, in a session blob, none of
+ * them are outside the user's display name.
+ */
+export const CHUNK_SIZE = 1024;
+
+const OPTIONS: SecureStore.SecureStoreOptions = {
+  keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+};
+
+/**
+ * SecureStore keys may only contain alphanumerics, `.`, `-` and `_`. The keys
+ * clients choose don't oblige (Firebase's has colons in it), so anything else
+ * becomes an underscore. The prefix keeps them out of anyone else's way.
+ */
+function namespace(key: string): string {
+  return `${PREFIX}.${key.replace(/[^A-Za-z0-9._-]/g, '_')}`;
 }
 
-export async function loadToken(): Promise<string | null> {
-  try {
-    return await SecureStore.getItemAsync(TOKEN_KEY);
-  } catch {
-    // a corrupt or unreadable entry should sign the user out, not crash the app
-    return null;
+const countKey = (key: string) => `${namespace(key)}.n`;
+const chunkKey = (key: string, i: number) => `${namespace(key)}.${i}`;
+
+/** How many entries the value under `key` was last written as; 0 if none */
+async function chunkCount(key: string): Promise<number> {
+  const raw = await SecureStore.getItemAsync(countKey(key), OPTIONS);
+  const n = raw === null ? 0 : Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : 0;
+}
+
+/**
+ * Cuts on character boundaries, never through a surrogate pair — half an
+ * emoji would not survive the round trip through a native string.
+ */
+function split(value: string): string[] {
+  const parts: string[] = [];
+  let start = 0;
+  while (start < value.length || parts.length === 0) {
+    let end = Math.min(start + CHUNK_SIZE, value.length);
+    if (end < value.length && /[\uD800-\uDBFF]/.test(value[end - 1])) end--;
+    parts.push(value.slice(start, end));
+    start = end;
+  }
+  return parts;
+}
+
+async function deleteChunks(key: string, from: number, to: number): Promise<void> {
+  for (let i = from; i < to; i++) {
+    await SecureStore.deleteItemAsync(chunkKey(key, i), OPTIONS);
   }
 }
 
-export async function clearToken(): Promise<void> {
-  try {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
-  } catch {
-    // already gone
-  }
+/** The shape both Supabase's `auth.storage` and Firebase's persistence expect */
+export interface SessionStorage {
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<void>;
+  removeItem(key: string): Promise<void>;
 }
+
+export const sessionStorage: SessionStorage = {
+  /**
+   * The stored value, or null if there isn't one or it can't be read back
+   * whole — a corrupt session should sign the user out, not crash the app.
+   */
+  async getItem(key) {
+    try {
+      const n = await chunkCount(key);
+      if (n === 0) return null;
+      const parts: string[] = [];
+      for (let i = 0; i < n; i++) {
+        const part = await SecureStore.getItemAsync(chunkKey(key, i), OPTIONS);
+        if (part === null) return null;
+        parts.push(part);
+      }
+      return parts.join('');
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Pieces first, count last, then whatever the previous value left behind
+   * past the new end. Best-effort, like the rest of the app's stores: a
+   * session that fails to persist signs the user out on the next launch
+   * rather than crashing this one.
+   */
+  async setItem(key, value) {
+    try {
+      const previous = await chunkCount(key);
+      const parts = split(value);
+      for (let i = 0; i < parts.length; i++) {
+        await SecureStore.setItemAsync(chunkKey(key, i), parts[i], OPTIONS);
+      }
+      await SecureStore.setItemAsync(countKey(key), String(parts.length), OPTIONS);
+      await deleteChunks(key, parts.length, previous);
+    } catch {
+      // see above
+    }
+  },
+
+  async removeItem(key) {
+    try {
+      const n = await chunkCount(key);
+      await SecureStore.deleteItemAsync(countKey(key), OPTIONS);
+      await deleteChunks(key, 0, n);
+    } catch {
+      // already gone
+    }
+  },
+};
 
 /** Whether SecureStore is usable — false on web, where there's no keystore */
 export function isAvailable(): Promise<boolean> {

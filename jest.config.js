@@ -1,8 +1,8 @@
 /**
- * Tests cover the pure logic only: streaks, deadlines, history, and the task
- * store's parsing. None of it renders, so this runs in plain Node rather than a
- * React Native environment — faster, and it keeps the suite honest about what it
- * actually exercises.
+ * Tests cover the pure logic only: streaks, deadlines, history, what the month
+ * and task stores accept off disk, and the session adapter. None of it renders,
+ * so this runs in plain Node rather than a React Native environment — faster,
+ * and it keeps the suite honest about what it actually exercises.
  */
 module.exports = {
   testEnvironment: 'node',
