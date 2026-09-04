@@ -1,13 +1,14 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/logo/logo-dark.svg">
-    <img alt="Monthly Planning" src="assets/logo/logo-light.svg" width="440">
+    <img alt="Rin — Monthly Planning" src="assets/logo/logo-light.svg" width="440">
   </picture>
 </p>
 
-# Monthly Planning
+# Rin
+*凛 (rin) — quiet composure, discipline that doesn't waver.*
 
-A digital version of the whiteboard "Monthly Planning" board with a **radial habit tracker**, built with Expo / React Native for iOS and Android.
+Free and open-source. A digital version of the whiteboard "Monthly Planning" board — Rin's home screen — with a **radial habit tracker**, built with Expo / React Native for iOS and Android.
 
 | Planner | Year grid | Daily check | Widgets |
 | :-: | :-: | :-: | :-: |

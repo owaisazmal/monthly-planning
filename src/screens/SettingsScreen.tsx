@@ -131,9 +131,13 @@ export default function SettingsScreen({ account, onSignIn, onSignOut, onClose }
         </View>
 
         <View style={styles.colophon}>
+          <Text style={styles.appName}>Rin</Text>
+          <Text style={styles.appDefinition}>
+            凛 — quiet composure, discipline that doesn't waver.
+          </Text>
           <Text style={styles.madeBy}>
-            Made by Owais Khan. No team, no investors, and no analytics to tell
-            me whether anyone ever reads this line.
+            Free and open-source. Made by Owais Khan. No team, no investors, and
+            no analytics to tell me whether anyone ever reads this line.
           </Text>
           <Pressable
             hitSlop={10}
@@ -323,6 +327,21 @@ const makeStyles = (p: Palette) =>
     colophon: {
       alignItems: 'center',
       paddingHorizontal: 12,
+    },
+    appName: {
+      marginBottom: 4,
+      fontSize: 22,
+      fontFamily: FONT.bold,
+      letterSpacing: 1,
+      color: p.ink,
+      textAlign: 'center',
+    },
+    appDefinition: {
+      marginBottom: 14,
+      fontSize: 12,
+      fontFamily: FONT.italic,
+      color: p.inkSoft,
+      textAlign: 'center',
     },
     madeBy: {
       textAlign: 'center',
